@@ -6,6 +6,7 @@
     <title>Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <style>
         body{
             padding: 70px 0 0 0;
@@ -117,7 +118,120 @@
             transform: scale(1.05);
             box-shadow: 0 0 12px rgba(160, 132, 245, 0.6);
           }          
-          
+
+          .codearena-hero {
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-glow {
+  font-weight: bold;
+  text-align: center;
+  background: linear-gradient(to right, #00ffff, #8a2be2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.text-cyan {
+  color: #00ffff;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00ffff;
+}
+
+.feature-box {
+  background-color: rgba(30, 30, 30, 0.95);
+  border-left: 4px solid #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+  min-height: 220px; /* equal height */
+}
+
+.feature-box:hover {
+  transform: scale(1.03);
+}
+
+.feature-icon {
+  font-size: 3rem; /* big icon size */
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff;
+}
+
+
+/* Stats Section */
+.codearena-stats {  
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+
+.stat-box {
+  background-color: rgba(30, 30, 30, 0.95);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+  border-left: 4px solid #00ffff;
+  min-height: 120px;
+}
+
+.text-cyan {
+  color: #00ffff;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00ffff;
+}
+
+/* CTA Section */
+.codearena-cta {
+  background-size: 300% 300%;
+  animation: gradientShift 10s ease infinite;
+}
+
+.gradient-heading {
+  font-weight: bold;
+  text-align: center;
+  background: linear-gradient(to right, #00ffff, #8a2be2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.gradient-btn {
+  background: linear-gradient(to right, #00ffff, #8a2be2);
+  color: #ffffff;
+  font-weight: bold;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gradient-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+}
+
+.codearena-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.95rem;
+}
+
+.footer-link {
+  color: #00ffff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 5px #00ffff;
+}
     </style>
 </head>
 <body>
@@ -158,7 +272,108 @@
             </div>
           </div>
           
+          <section class="codearena-hero text-white text-center py-5">
+            <div class="container">
+              <h1 class="display-5 fw-bold gradient-heading">Everything You Need to Excel</h1>
+              <p class="lead mb-5">From practice problems to competitive quizzes, we've got all the tools to sharpen your coding skills.</p>
           
+              <!-- First Row -->
+              <div class="row justify-content-center g-4">
+                <div class="col-md-6">
+                  <div class="feature-box h-100 p-4 rounded d-flex flex-column align-items-center">
+                    <i class="bi bi-code-slash feature-icon mb-3"></i>
+                    <h5 class="text-cyan">500+ Problems</h5>
+                    <p>Curated coding challenges across all difficulty levels and topics.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="feature-box h-100 p-4 rounded d-flex flex-column align-items-center">
+                    <i class="bi bi-question-circle feature-icon mb-3"></i>
+                    <h5 class="text-cyan">Interactive Quizzes</h5>
+                    <p>MCQs, output prediction, and debugging challenges to test your knowledge.</p>
+                  </div>
+                </div>
+              </div>
+          
+              <!-- Second Row -->
+              <div class="row justify-content-center g-4 mt-2">
+                <div class="col-md-6">
+                  <div class="feature-box h-100 p-4 rounded d-flex flex-column align-items-center">
+                    <i class="bi bi-trophy feature-icon mb-3"></i>
+                    <h5 class="text-cyan">Leaderboard</h5>
+                    <p>Compete with peers and climb the ranks to prove your skills.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="feature-box h-100 p-4 rounded d-flex flex-column align-items-center">
+                    <i class="bi bi-graph-up feature-icon mb-3"></i>
+                    <h5 class="text-cyan">Progress Tracking</h5>
+                    <p>Track your journey with detailed stats and activity calendar.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+
+
+          <!-- Stats Section -->
+<section class="codearena-stats text-white text-center py-5">
+  <div class="container">
+    <div class="row justify-content-center g-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-box p-3 rounded">
+          <h2 class="text-cyan">500+</h2>
+          <p>Problems</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-box p-3 rounded">
+          <h2 class="text-cyan">10K+</h2>
+          <p>Users</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-box p-3 rounded">
+          <h2 class="text-cyan">1M+</h2>
+          <p>Submissions</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-box p-3 rounded">
+          <h2 class="text-cyan">50+</h2>
+          <p>Topics</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="codearena-cta text-white text-center py-5">
+  <div class="container">
+    <h2 class="fw-bold text-glow mb-3">Ready to Start Your Journey?</h2>
+    <p class="lead mb-4">Join thousands of developers who are improving their skills every day on CodeArena.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="#" class="btn gradient-btn">Create Free Account</a>
+      <a href="#" class="btn btn-outline-light px-4 py-2">Contact Us</a>
+    </div>
+  </div>
+</section>
+
+<footer class="codearena-footer text-white text-center py-4">
+  <div class="container">
+    <div class="mb-3">
+      <a href="#" class="footer-link">Privacy</a>
+      <span class="mx-2">|</span>
+      <a href="#" class="footer-link">Terms</a>
+      <span class="mx-2">|</span>
+      <a href="#" class="footer-link">Support</a>
+    </div>
+    <p class="mb-0">&copy; 2024 CodeArena. All rights reserved.</p>
+  </div>
+</footer>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
