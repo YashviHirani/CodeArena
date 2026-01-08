@@ -247,10 +247,10 @@
                 </button>
                 <div class="collapse navbar-collapse" id="mobileMenu">
                     <ul class="navbar-nav mt-3">
-                        <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-terminal"></i> Problems</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-person"></i> Profile</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                        <li class="nav-item"><a class="nav-link-custom active" href="{% url 'dashboard'%}"><i class="bi bi-terminal"></i> Problems</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{%url 'profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
                         
                         <hr class="border-secondary opacity-25">
                         <li class="nav-item d-flex align-items-center gap-3 py-2">
@@ -272,10 +272,10 @@
             </div>
 
             <nav class="mt-4 flex-grow-1 px-2">
-                <a href="#" class="nav-link-custom active"><i class="bi bi-terminal"></i> Problems</a>
-                <a href="#" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
-                <a href="#" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
-                <a href="#" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
+                <a href="{% url 'dashboard'%}" class="nav-link-custom active"><i class="bi bi-terminal"></i> Problems</a>
+                <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
+                <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+                <a href="{%url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
                
             </nav>
 
