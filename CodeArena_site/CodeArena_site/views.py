@@ -5,3 +5,15 @@ def login(request):
     return render(request,"login.html")
 def signup(request):
     return render(request,"signup.html")
+def dashboard(request):
+    return render(request,"dashboard.html")
+def profile(request):
+    return render(request,"profile.html")
+def quiz(request):
+    return render(request,"quiz.html")
+def insideQuiz(request):
+    return render(request,"insideQuiz.html")
+def DebuggingQuiz(request):
+    return render(request,"DebuggingQuiz.html")
+def leaderboard(request):
+    return render(request,"leaderboard.html")

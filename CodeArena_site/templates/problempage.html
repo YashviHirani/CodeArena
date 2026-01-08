@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeArena | Problem Solver</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <style>
+        /* --- THEME VARIABLES (MATCHING HOME.HTML) --- */
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --glow-gradient: linear-gradient(90deg, #00dc82, #0ff, #ff00ff);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .bg-radial {
+            background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        h1, h2, h3, h4, h5, .font-heading {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* --- SIDEBAR & NAVBAR STYLING --- */
+        
+        /* Mobile Navbar */
+        .navbar {
+            background: rgba(10, 10, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .navbar-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Desktop Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1050;
+        }
+
+        .nav-link-custom {
+            padding: 12px 20px;
+            margin: 4px 15px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.75);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            background: linear-gradient(90deg, rgba(32, 201, 151, 0.15), rgba(78, 84, 200, 0.15));
+            color: #ffffff;
+            border-left: 3px solid #20c997;
+            text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .main-content {
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                margin-left: 280px;
+                padding: 40px;
+            }
+        }
+
+        /* --- CARDS (MATCHING HOME.HTML) --- */
+        .plugin-card.futuristic {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .plugin-card.futuristic:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(32, 201, 151, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .plugin-card.futuristic::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .plugin-card.futuristic:hover::after {
+            transform: translateX(100%);
+        }
+
+        /* --- TYPOGRAPHY & GRADIENTS --- */
+        .text-cyan {
+            color: var(--primary-glow);
+            text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
+        }
+
+        .hero-gradient-text {
+            background: linear-gradient(90deg, #b7fce7 0%, #20c997 50%, #8f94fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* --- BUTTONS (MATCHING HOME.HTML) --- */
+        .btn-glow {
+            background: linear-gradient(90deg, #20c997, #4e54c8);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(32, 201, 151, 0.4);
+            color: white;
+            filter: brightness(1.1);
+        }
+
+        /* --- FORM ELEMENTS (Dark Mode) --- */
+        .form-control-dark, .form-select-dark {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--card-border) !important;
+            color: #fff !important;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            font-family: 'JetBrains Mono', monospace; /* Monospace for code */
+            transition: all 0.3s ease;
+        }
+
+        .form-control-dark:focus, .form-select-dark:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 15px rgba(32, 201, 151, 0.1) !important;
+            outline: none;
+        }
+
+        .example-box {
+            background: rgba(32, 201, 151, 0.05);
+            border: 1px solid rgba(32, 201, 151, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            color: #b0b0cc;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Avatar Animation */
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            background: var(--glow-gradient);
+            background-size: 300%;
+            animation: borderFlow 4s infinite linear;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 0 10px rgba(32, 201, 151, 0.4);
+        }
+
+        /* Scrollbar for Textareas */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05); 
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2); 
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3); 
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-radial">
+
+        <nav class="navbar navbar-expand-lg d-lg-none sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">CodeArena</a>
+                <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mobileMenu">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mobileMenu">
+                    <ul class="navbar-nav mt-3">
+                        <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-terminal"></i> Problems</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-person"></i> Profile</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                        
+                        <hr class="border-secondary opacity-25">
+                        <li class="nav-item d-flex align-items-center gap-3 py-2">
+                            <div class="avatar-circle" style="font-size: 0.8rem;">JD</div>
+                            <div>
+                                <div class="fw-bold text-white small">Demo User</div>
+                                <div class="text-cyan" style="font-size: 0.7rem;">Rank #001</div>
+                            </div>
+                        </li>
+                        <li class="nav-item mt-2"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <aside class="sidebar d-none d-lg-flex">
+            <div class="p-4 border-bottom border-white border-opacity-10">
+                <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
+            </div>
+
+            <nav class="mt-4 flex-grow-1 px-2">
+                <a href="#" class="nav-link-custom active"><i class="bi bi-terminal"></i> Problems</a>
+                <a href="#" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
+                <a href="#" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+                <a href="#" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
+               
+            </nav>
+
+            <div class="p-4 mt-auto border-top border-white border-opacity-10">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="avatar-circle">JD</div>
+                    <div>
+                        <div class="fw-bold text-white">Demo User</div>
+                        <div class="text-cyan small">Rank #001</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline-danger btn-sm w-100 rounded-pill">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="container-fluid" style="max-width: 1000px;">
+                
+                <div class="mb-5 mt-3">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <h5 class="text-secondary m-0" style="font-family: 'Orbitron'; letter-spacing: 1px;">PROBLEM #005</h5>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Medium</span>
+                    </div>
+                    <h1 class="display-4 fw-bold hero-gradient-text">Longest Palindromic Substring</h1>
+                </div>
+
+                <div class="plugin-card futuristic">
+                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-info-circle me-2"></i> Description</h5>
+                    <p class="fs-5 text-light opacity-75" style="line-height: 1.6;">
+                        Given a string <code class="text-info bg-dark px-2 rounded">s</code>, return the <strong>longest palindromic substring</strong> in <code class="text-info bg-dark px-2 rounded">s</code>.
+                    </p>
+                    <div class="mt-4">
+                        <p class="small text-secondary mb-2 text-uppercase fw-bold">Example Case</p>
+                        <div class="example-box">
+                            <span class="text-white">Input:</span> "babad"<br>
+                            <span class="text-white">Output:</span> "bab"<br>
+                            <span class="text-secondary small">// Note: "aba" is also a valid answer.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plugin-card futuristic">
+                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-terminal me-2"></i> Test Cases</h5>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small">Input</label>
+                            <textarea class="form-control form-control-dark" rows="2" readonly>"babad"</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small">Expected Output</label>
+                            <textarea class="form-control form-control-dark" rows="2" readonly>"bab"</textarea>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center mt-4 gap-3">
+                        <button class="btn btn-glow" onclick="runSim()">
+                            <i class="bi bi-play-fill me-1"></i> Run Test
+                        </button>
+                        <div id="testResult" class="small"></div>
+                    </div>
+                </div>
+
+                <div class="plugin-card futuristic">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="font-heading text-cyan mb-0"><i class="bi bi-code-slash me-2"></i> Code Editor</h5>
+                        <select class="form-select form-select-dark w-auto btn-sm">
+                            <option>Java</option>
+                            <option>Python</option>
+                            <option>C++</option>
+                        </select>
+                    </div>
+                    <textarea class="form-control form-control-dark mb-4" rows="12" style="font-size: 14px; line-height: 1.5;">
+class Solution {
+    public String longestPalindrome(String s) {
+        // Your logic goes here...
+        
+        return "";
+    }
+}</textarea>
+                    <button class="btn btn-glow w-100 py-3 fs-5" onclick="submitSim()"> 
+                        Submit Solution <i class="bi bi-arrow-right-short"></i>
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function runSim() {
+            const res = document.getElementById('testResult');
+            res.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm me-2"></span>Running...</span>';
+            setTimeout(() => {
+                res.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Sample Test Case Passed!</span>';
+            }, 800);
+        }
+        function submitSim() {
+            // Using a nicer styled alert or custom modal in production would be better, keeping basic for logic preservation
+            alert("Congratulations! Solution Accepted.\n\nRuntime: 2ms\nMemory: 41.5MB");
+        }
+    </script>
+</body>
+
+</html>

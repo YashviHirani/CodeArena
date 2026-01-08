@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeArena | Debugging Quiz</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <style>
+        /* --- DESIGN SYSTEM --- */
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .bg-radial-fixed {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
+            z-index: -1;
+        }
+
+        /* Typography */
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .text-cyan { color: var(--primary-glow); text-shadow: 0 0 10px rgba(32, 201, 151, 0.3); }
+
+        /* --- NAVBAR --- */
+        .navbar-glass {
+            background: rgba(10, 10, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .navbar-brand-custom {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
+            text-decoration: none;
+        }
+
+        /* --- CARDS --- */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            opacity: 0.5;
+        }
+
+        /* --- OPTIONS --- */
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace; 
+        }
+
+        .option:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-glow);
+            background: rgba(32, 201, 151, 0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: #fff;
+        }
+
+        .option.active {
+            background: rgba(32, 201, 151, 0.15);
+            border-color: var(--primary-glow);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(32, 201, 151, 0.2);
+        }
+
+        .option.correct {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .option.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* --- DIFFICULTY BADGES --- */
+        .diff-badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid;
+            margin-left: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .diff-easy { color: #20c997; border-color: #20c997; background: rgba(32, 201, 151, 0.1); }
+        .diff-medium { color: #ffc107; border-color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+        .diff-hard { color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        /* --- PROGRESS BAR --- */
+        .progress {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #20c997, #4e54c8);
+            box-shadow: 0 0 10px rgba(32, 201, 151, 0.5);
+            transition: width 0.4s ease;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-glow {
+            background: linear-gradient(90deg, #20c997, #4e54c8);
+            color: white;
+            border: none;
+            padding: 0.6rem 2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+        }
+
+        .btn-glow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(32, 201, 151, 0.4);
+            color: white;
+            filter: brightness(1.1);
+        }
+
+        .btn-glow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-outline-custom {
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+            padding: 0.6rem 2rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-custom:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* --- RESULTS --- */
+        .result-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4.5rem;
+            background: linear-gradient(to bottom, #fff, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-radial-fixed"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-glass sticky-top mb-5">
+        <div class="container">
+            <a class="navbar-brand-custom" href="{% url 'quiz' %}">CodeArena</a>
+            <div class="d-flex align-items-center">
+                <span class="text-secondary small me-2 d-none d-sm-inline">User:</span>
+                <span class="text-white fw-bold small">Demo User</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <div class="mx-auto" style="max-width:850px;">
+
+            <div class="text-center mb-5">
+                <h2 class="fw-bold font-orbitron gradient-heading text-white">Debugging Quiz</h2>
+                <p class="text-secondary">Find bugs, predict outputs, and fix logic errors.</p>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-end mb-2">
+                    <div class="d-flex align-items-center">
+                        <small id="qInfo" class="text-cyan font-orbitron">Question 1</small>
+                        <span id="diffBadge" class="diff-badge diff-easy">Easy</span>
+                    </div>
+                    <span class="badge bg-transparent border border-secondary text-light fw-normal" id="scoreInfo">Score: 0</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 p-md-5 mb-4" id="quizBox">
+                <h4 class="mb-4 text-white fw-bold" id="question" style="line-height: 1.5; font-family: monospace;"></h4>
+                <div id="options" class="d-flex flex-column gap-3"></div>
+            </div>
+
+            <div class="d-flex gap-3 align-items-center">
+                <a class="btn btn-outline-custom" onclick="restart()" href="{% url 'quiz' %}">Exit</a>
+                <div class="flex-grow-1"></div>
+                <button class="btn btn-glow" onclick="submit()" id="actionBtn" disabled>
+                    Submit Answer
+                </button>
+            </div>
+
+            <div class="glass-card text-center p-5 mt-5 d-none" id="resultBox">
+                <i class="bi bi-bug-fill text-cyan fs-1 mb-3"></i>
+                <h3 class="mb-2 font-orbitron text-white">Debugging Complete</h3>
+                <p class="text-secondary mb-4">How sharp are your troubleshooting skills?</p>
+
+                <div class="result-score" id="finalScore"></div>
+                <div id="resultBadgeWrapper" class="mb-5">
+                    <span class="badge fs-6 px-4 py-2 rounded-pill" id="resultBadge"></span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a class="btn btn-outline-custom" onclick="restart()" href="{% url 'quiz' %}">Back to Hub</a>
+                    <button class="btn btn-glow px-4" onclick="restart()">Try Again</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Updated Questions with Difficulty Levels
+        const questions = [
+            {
+                q: "Identify the bug: const x = 10; x = 20;",
+                o: [
+                    "SyntaxError: Missing semicolon",
+                    "TypeError: Assignment to constant variable",
+                    "ReferenceError: x is not defined",
+                    "No error, x becomes 20"
+                ],
+                a: 1,
+                difficulty: "Easy"
+            },
+            {
+                q: "What does this output? console.log(1 + \"1\");",
+                o: [
+                    "2",
+                    "\"11\"",
+                    "NaN",
+                    "TypeError"
+                ],
+                a: 1,
+                difficulty: "Easy"
+            },
+            {
+                q: "What is the result of: console.log(typeof NaN); ?",
+                o: [
+                    "\"NaN\"",
+                    "\"undefined\"",
+                    "\"number\"",
+                    "\"object\""
+                ],
+                a: 2,
+                difficulty: "Medium"
+            },
+            {
+                q: "Why is 'if(x = 5)' usually a bug?",
+                o: [
+                    "It causes a syntax error",
+                    "It checks if x is equal to 5",
+                    "It assigns 5 to x and always evaluates to true",
+                    "It creates an infinite loop"
+                ],
+                a: 2,
+                difficulty: "Medium"
+            },
+            {
+                q: "What is the output of: console.log(0.1 + 0.2 === 0.3);",
+                o: [
+                    "true",
+                    "false",
+                    "undefined",
+                    "NaN"
+                ],
+                a: 1, // returns false because of floating point math (0.30000000000000004)
+                difficulty: "Hard"
+            }
+        ];
+
+        let index = 0;
+        let selected = null;
+        let score = 0;
+        let locked = false;
+
+        function load() {
+            locked = false;
+            selected = null;
+
+            // Update header info
+            document.getElementById("qInfo").innerText = `Question ${index+1} of ${questions.length}`;
+            document.getElementById("scoreInfo").innerText = `Score: ${score}`;
+            document.getElementById("progressBar").style.width = `${((index+1)/questions.length)*100}%`;
+
+            // Update Difficulty Badge
+            const currentDiff = questions[index].difficulty;
+            const diffBadge = document.getElementById("diffBadge");
+            diffBadge.innerText = currentDiff;
+            
+            // Remove old colors
+            diffBadge.classList.remove('diff-easy', 'diff-medium', 'diff-hard');
+            
+            // Add new color based on difficulty
+            if(currentDiff === "Easy") diffBadge.classList.add('diff-easy');
+            else if(currentDiff === "Medium") diffBadge.classList.add('diff-medium');
+            else if(currentDiff === "Hard") diffBadge.classList.add('diff-hard');
+
+            // Load Question
+            document.getElementById("question").innerText = questions[index].q;
+
+            // Load Options
+            const optBox = document.getElementById("options");
+            optBox.innerHTML = "";
+
+            questions[index].o.forEach((text, i) => {
+                const div = document.createElement("div");
+                div.className = "option";
+                div.innerText = text;
+                div.onclick = () => selectOption(i, div);
+                optBox.appendChild(div);
+            });
+
+            document.getElementById("actionBtn").innerText = "Submit Answer";
+            document.getElementById("actionBtn").disabled = true;
+        }
+
+        function selectOption(i, el) {
+            if (locked) return;
+            selected = i;
+            document.getElementById("actionBtn").disabled = false;
+            document.querySelectorAll(".option").forEach(o => o.classList.remove("active"));
+            el.classList.add("active");
+        }
+
+        function submit() {
+            if (selected === null) return;
+
+            if (!locked) {
+                locked = true;
+
+                document.querySelectorAll(".option").forEach((o, i) => {
+                    if (i === questions[index].a) o.classList.add("correct");
+                    if (i === selected && i !== questions[index].a) o.classList.add("wrong");
+                });
+
+                if (selected === questions[index].a) score++;
+
+                document.getElementById("actionBtn").innerText =
+                    index === questions.length - 1 ? "View Result" : "Next Question";
+            } else {
+                index++;
+                if (index < questions.length) load();
+                else showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById("quizBox").classList.add("d-none");
+            document.getElementById("resultBox").classList.remove("d-none");
+            document.querySelector(".d-flex.gap-3.align-items-center").classList.add("d-none");
+            document.querySelector(".mb-4").classList.add("d-none"); 
+
+            const percent = Math.round((score / questions.length) * 100);
+            document.getElementById("finalScore").innerText =
+                `${score} / ${questions.length}`;
+
+            const badge = document.getElementById("resultBadge");
+            if (percent >= 80) {
+                badge.className = "badge bg-success bg-opacity-25 text-success border border-success fs-6 px-4 py-2 rounded-pill";
+                badge.innerText = `${percent}% - Expert debugger!`;
+            } else if (percent >= 50) {
+                badge.className = "badge bg-warning bg-opacity-25 text-warning border border-warning fs-6 px-4 py-2 rounded-pill";
+                badge.innerText = `${percent}% - Good bug spotting!`;
+            } else {
+                badge.className = "badge bg-danger bg-opacity-25 text-danger border border-danger fs-6 px-4 py-2 rounded-pill";
+                badge.innerText = `${percent}% - Check the console!`;
+            }
+        }
+
+        function restart() {
+            index = 0;
+            score = 0;
+            document.getElementById("quizBox").classList.remove("d-none");
+            document.getElementById("resultBox").classList.add("d-none");
+            document.querySelector(".d-flex.gap-3.align-items-center").classList.remove("d-none");
+            document.querySelector(".mb-4").classList.remove("d-none");
+            load();
+        }
+
+        load();
+    </script>
+</body>
+
+</html>
