@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeArena | Login</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-glow: #20c997;
+      --secondary-glow: #8f94fb;
+      --bg-dark: #050505;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: var(--bg-dark);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    .bg-radial {
+      background: radial-gradient(circle at center, #1a1a2e 0%, #000000 80%);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* --- Futuristic Auth Card --- */
+    .auth-card {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 45px 35px;
+      transition: all 0.4s ease;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Moving Border Animation */
+    .auth-card::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary-glow), var(--secondary-glow), transparent);
+      transform: translateX(-100%);
+      transition: 0.8s;
+    }
+
+    .auth-card:hover::after {
+      transform: translateX(100%);
+    }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      background: linear-gradient(90deg, #20c997, #8f94fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .sub-title {
+      color: #8b8bb3;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      margin-bottom: 35px;
+      display: block;
+      text-transform: uppercase;
+    }
+
+    /* --- Form Controls & White Placeholder --- */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group-text {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--primary-glow);
+      border-right: none;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 12px;
+    }
+
+    /* Target all browsers for white placeholder */
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.8) !important;
+      opacity: 1; /* Firefox fix */
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--primary-glow);
+      box-shadow: 0 0 15px rgba(32, 201, 151, 0.15);
+      color: white;
+    }
+
+    .password-toggle {
+        border-left: none;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .password-toggle:hover {
+        color: white;
+    }
+
+    .btn-glow {
+        background: linear-gradient(90deg,
+        #20c997,
+        #4e54c8,
+        #8f94fb,
+        #20c997);
+        background-size: 300%;
+        border: none;
+        color: white;
+        font-weight: 600;
+        animation: glowMove 4s linear infinite;
+    }
+
+    @keyframes glowMove {
+        0% {
+          background-position: 0%;
+        }
+  
+        100% {
+          background-position: 300%;
+        }
+      }
+      .btn-glow:hover {
+        box-shadow: 0 0 14px rgba(160, 132, 245, .6);
+      }
+    .small-link {
+      color: var(--primary-glow);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: 0.3s;
+    }
+
+    .small-link:hover {
+      text-shadow: 0 0 8px var(--primary-glow);
+      color: white;
+    }
+
+    .social-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      color: #e0e0e0;
+      padding: 10px;
+      font-size: 0.9rem;
+      transition: 0.3s;
+    }
+
+    .social-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #666;
+        margin: 25px 0;
+        font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .divider:not(:empty)::before { margin-right: .5em; }
+    .divider:not(:empty)::after { margin-left: .5em; }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-radial">
+    <div class="auth-card text-center">
+      <div class="brand">
+        <h3 class="brand-title">CodeArena</h3>
+        <span class="sub-title">Code. Compete. Conquer.</span>
+      </div>
+
+      <form method="POST">
+        <input type="hidden" name="login">
+
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input name="username" class="form-control" placeholder="Username or Email" required>
+        </div>
+
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Password" required>
+          <span class="input-group-text password-toggle" onclick="togglePassword('loginPassword')">
+            <i class="bi bi-eye" id="toggleIcon"></i>
+          </span>
+        </div>
+
+        <div class="text-end mb-4">
+            <a href="#" class="small-link">Forgot Password?</a>
+        </div>
+
+        <button class="btn btn-glow w-100 mb-3">Sign In</button>
+
+        <p class="small text-secondary mb-0">
+            Don't have an account? <a href="{% url 'signup' %}" class="small-link">Create Account</a>
+        </p>
+
+        <div class="divider">OR CONTINUE WITH</div>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn social-btn flex-fill"><i class="bi bi-google me-2"></i>Google</button>
+          <button type="button" class="btn social-btn flex-fill"><i class="bi bi-github me-2"></i>GitHub</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(id) {
+      const passwordField = document.getElementById(id);
+      const icon = document.getElementById('toggleIcon');
+      
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        passwordField.type = "password";
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

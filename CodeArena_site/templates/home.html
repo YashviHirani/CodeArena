@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeArena</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            padding-top: 80px;
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+        }
+
+        .bg-radial {
+            background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
+            min-height: 100vh;
+        }
+
+        /* --- Enhanced Glassmorphism Navbar --- */
+        .navbar {
+            background: rgba(10, 10, 20, 0.75) !important;
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.8rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #20c997, #8f94fb, transparent);
+            opacity: 0.5;
+        }
+
+        .navbar-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.7rem;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.75) !important;
+            font-weight: 500;
+            position: relative;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff !important;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: #20c997;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px #20c997;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .navbar-toggler {
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .navbar-toggler-icon {
+            filter: invert(1);
+        }
+
+        /* --- Buttons --- */
+        .btn-glow {
+            background: linear-gradient(90deg, #20c997, #4e54c8);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(32, 201, 151, 0.4);
+            color: white;
+            filter: brightness(1.1);
+        }
+
+        /* --- Hero Section --- */
+        .hero-section {
+            padding: 120px 0 80px;
+        }
+
+        .hero-heading {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-subtext {
+            color: #b0b0cc;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        /* --- Cards & Features --- */
+        .plugin-card.futuristic {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .plugin-card.futuristic:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(32, 201, 151, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .plugin-card.futuristic::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .plugin-card.futuristic:hover::after {
+            transform: translateX(100%);
+        }
+
+        .text-cyan {
+            color: #20c997;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .feature-icon-1, .feature-icon-2, .feature-icon-3, .feature-icon-4 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .feature-icon-1 { color: #ea00ff; }
+        .feature-icon-2 { color: #00d2ff; }
+        .feature-icon-3 { color: #ffd000; }
+        .feature-icon-4 { color: #00ff15; }
+
+        /* --- Stats Section --- */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .stat-card h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- Contact Form Styles (Added for this section) --- */
+        .form-control-dark {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: #fff;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control-dark:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 15px rgba(32, 201, 151, 0.1);
+            color: #fff;
+            outline: none;
+        }
+        
+        .form-control-dark::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .contact-icon-box {
+            width: 45px;
+            height: 45px;
+            background: rgba(32, 201, 151, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--primary-glow);
+            border: 1px solid rgba(32, 201, 151, 0.2);
+            margin-right: 15px;
+        }
+
+        /* --- Utility --- */
+        .gradient-heading {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to right, #ffffff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        .word-master, .word-code { color: #fff; }
+        .word-conquer, .word-challenges { 
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        footer {
+            background: #050505;
+            border-top: 1px solid var(--card-border);
+            margin-top: 5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-radial">
+        <nav class="navbar navbar-expand-lg fixed-top">
+            <div class="container">
+              <a class="navbar-brand" href="#">CodeArena</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                  <li class="nav-item"><a class="nav-link" href="#featuresId">Features</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Problems</a></li>
+                  <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                  <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
+                    <a class="btn btn-glow" href="{%url 'dashboard'%}">Get Started</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+        </nav>
+          
+        <div class="container hero-section text-center">
+            <h1 class="hero-heading">
+                <span class="word-master">Master</span> Code. <br>
+                <span class="word-conquer">Conquer</span> Challenges.
+            </h1>
+            <p class="hero-subtext">
+                Practice coding problems, compete in quizzes, debug like a pro, and climb the leaderboard. Your journey to coding mastery starts here.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+              <a href="{% url 'login' %}" class="btn btn-glow px-4 py-2">Start Coding Now</a>
+              <a href="{%url 'dashboard'%}" class="btn btn-outline-light px-4 py-2" style="border-radius: 8px;">Explore Problems</a>
+            </div>
+        </div>
+          
+        <section class="py-5">
+            <div class="container"  id="featuresId">
+              <h2 class="text-center gradient-heading">Everything You Need to Excel</h2>
+          
+              <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                  <div class="plugin-card futuristic text-center" >
+                    <i class="bi bi-code-slash feature-icon-1"></i>
+                    <h5 class="text-cyan">500+ Problems</h5>
+                    <p class="text-secondary small">Curated coding challenges across all difficulty levels and topics.</p>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                  <div class="plugin-card futuristic text-center">
+                    <i class="bi bi-question-circle feature-icon-2"></i>
+                    <h5 class="text-cyan">Quizzes</h5>
+                    <p class="text-secondary small">Interactive MCQs and output prediction to test your core knowledge.</p>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                  <div class="plugin-card futuristic text-center">
+                    <i class="bi bi-trophy feature-icon-3"></i>
+                    <h5 class="text-cyan">Leaderboard</h5>
+                    <p class="text-secondary small">Compete with peers and climb the ranks to prove your skills.</p>
+                  </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                  <div class="plugin-card futuristic text-center">
+                    <i class="bi bi-graph-up feature-icon-4"></i>
+                    <h5 class="text-cyan">Analytics</h5>
+                    <p class="text-secondary small">Track your journey with detailed stats and activity heatmaps.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </section>
+
+        <section class="py-5">
+          <div class="container">
+            <div class="row g-4 text-center">
+              <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                  <h2 class="text-white">500+</h2>
+                  <p class="text-secondary mb-0">Problems</p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                  <h2 class="text-white">10K+</h2>
+                  <p class="text-secondary mb-0">Users</p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                  <h2 class="text-white">1M+</h2>
+                  <p class="text-secondary mb-0">Submissions</p>
+                </div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="stat-card">
+                  <h2 class="text-white">50+</h2>
+                  <p class="text-secondary mb-0">Topics</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="py-5">
+          <div class="container text-center">
+            <div class="p-5 rounded-4" style="background: linear-gradient(rgba(32, 201, 151, 0.1), transparent); border: 1px solid var(--card-border);">
+                <h2 class="fw-bold mb-3" style="font-family: 'Orbitron';">Ready to Start Your Journey?</h2>
+                <p class="text-secondary mb-4">Join thousands of developers who are improving their skills every day on CodeArena.</p>
+                <div class="d-flex justify-content-center gap-3">
+                  <a href="{% url 'signup' %}" class="btn btn-glow">Create Free Account</a>
+                </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="py-5" id="contact">
+            <div class="container">
+                <h2 class="text-center gradient-heading">Get in Touch</h2>
+                <div class="row g-5">
+                    <div class="col-lg-5">
+                        <div class="plugin-card futuristic h-100 p-4">
+                            <h3 class="text-cyan mb-4">Let's Connect</h3>
+                            <p class="text-secondary mb-4">Have questions about problems, subscriptions, or just want to say hi? We'd love to hear from you.</p>
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="contact-icon-box">
+                                    <i class="bi bi-geo-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-white mb-1">Our Location</h6>
+                                    <p class="text-secondary small mb-0">Tech Hub, Silicon Valley, CA</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="contact-icon-box">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-white mb-1">Email Us</h6>
+                                    <p class="text-secondary small mb-0">support@codearena.com</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <div class="contact-icon-box">
+                                    <i class="bi bi-telephone"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-white mb-1">Call Support</h6>
+                                    <p class="text-secondary small mb-0">+1 (555) 123-4567</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-3 border-top border-secondary border-opacity-25">
+                                <h6 class="text-white mb-3">Follow Us</h6>
+                                <div class="d-flex gap-3">
+                                    <a href="#" class="text-secondary hover-white fs-4"><i class="bi bi-github"></i></a>
+                                    <a href="#" class="text-secondary hover-white fs-4"><i class="bi bi-linkedin"></i></a>
+                                    <a href="#" class="text-secondary hover-white fs-4"><i class="bi bi-twitter-x"></i></a>
+                                    <a href="#" class="text-secondary hover-white fs-4"><i class="bi bi-discord"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="plugin-card futuristic h-100 p-4">
+                            <form>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="text-secondary small mb-2">Your Name</label>
+                                            <input type="text" class="form-control form-control-dark" placeholder="John Doe">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label class="text-secondary small mb-2">Your Email</label>
+                                            <input type="email" class="form-control form-control-dark" placeholder="john@example.com">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group mb-3">
+                                            <label class="text-secondary small mb-2">Subject</label>
+                                            <input type="text" class="form-control form-control-dark" placeholder="Bug Report / Feature Request">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group mb-4">
+                                            <label class="text-secondary small mb-2">Message</label>
+                                            <textarea class="form-control form-control-dark" rows="5" placeholder="Tell us how we can help..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-glow w-100 py-2">Send Message</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <footer class="py-5">
+          <div class="container text-center">
+            <div class="mb-4">
+              <a href="#" class="text-secondary text-decoration-none mx-3">Privacy</a>
+              <a href="#" class="text-secondary text-decoration-none mx-3">Terms</a>
+              <a href="#" class="text-secondary text-decoration-none mx-3">Support</a>
+            </div>
+            <p class="text-secondary small mb-0">&copy; 2024 CodeArena. Designed for the future of coding.</p>
+          </div>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,732 @@
+{%load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeArena - Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-main: #e0e0e0;
+            --text-muted: #b0b0cc;
+            --sidebar-width: 280px; 
+            --glow-gradient: linear-gradient(90deg, #00dc82, #0ff, #ff00ff);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* The Radial Background Wrapper */
+        .bg-radial {
+            background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        h1, h2, h3, h4, h5, .font-heading, .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* --- NAVBAR & SIDEBAR --- */
+        .navbar {
+            background-color: #0f0f1a;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .navbar-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 15, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1050;
+        }
+
+        .nav-link-custom {
+            padding: 12px 20px;
+            margin: 4px 15px;
+            border-radius: 8px;
+            color: #cfcfe6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            background: linear-gradient(90deg, rgba(32, 201, 151, 0.2), rgba(78, 84, 200, 0.2));
+            color: #00ffff;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+            border-left: 3px solid #00ffff;
+        }
+
+        .text-cyan {
+            background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bolder;
+        }
+
+        /* Avatar Animation */
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .avatar-circle {
+            width: 45px;
+            height: 45px;
+            background: var(--glow-gradient);
+            background-size: 300%;
+            animation: borderFlow 4s infinite linear;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        /* --- LAYOUT --- */
+        .main-content {
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            margin-left: 0; 
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                margin-left: var(--sidebar-width);
+                padding: 40px;
+                max-width: calc(100vw - var(--sidebar-width));
+            }
+        }
+
+        @media (max-width: 991px) {
+            .sidebar { display: none !important; }
+            .user-content {
+                justify-content: center;
+                text-align: center;
+            }
+            .user-content img {
+                margin-right: 0 !important;
+                margin-bottom: 20px;
+            }
+            .rank-pulse {
+                position: relative !important;
+                top: 0 !important;
+                right: 0 !important;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* --- CARDS --- */
+        .plugin-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .plugin-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(32, 201, 151, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .plugin-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        .plugin-card:hover::after {
+            transform: translateX(100%);
+        }
+
+        /* --- COMPONENTS --- */
+        .rank-pulse {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            animation: pulseGlow 2s infinite ease-in-out;
+            border: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            padding: 8px 20px; 
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #000 !important;
+            border-radius: 50px;
+            background: linear-gradient(45deg, var(--primary-glow), var(--secondary-glow));
+            z-index: 10;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px rgba(32, 201, 151, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(32, 201, 151, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(32, 201, 151, 0.4); }
+        }
+
+        .profile-img {
+            height: 160px; width: 160px; 
+            object-fit: cover; 
+            background: #222; 
+            border-radius: 15px;
+            border: 2px solid var(--primary-glow); 
+            box-shadow: 0 0 20px rgba(32, 201, 151, 0.2);
+        }
+
+        .text-neon-cyan { color: var(--primary-glow); }
+        .text-purple { color: var(--secondary-glow); }
+        .text-gold { color: #ffd000; }
+        
+        /* Calendar */
+        .calendar-body {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--card-border) transparent;
+        }
+        .calendar-body::-webkit-scrollbar { height: 6px; }
+        .calendar-body::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 10px; }
+
+        .month {
+            display: grid;
+            grid-template-rows: repeat(7, 1fr); 
+            grid-auto-flow: column;
+            grid-auto-columns: 12px;
+            gap: 4px;
+        }
+
+        .day { width: 12px; height: 12px; border-radius: 3px; transition: 0.2s; }
+        .day:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 0 8px #fff; }
+        
+        .l0 { background: rgba(255,255,255,0.05); }
+        .l1 { background: rgba(32, 201, 151, 0.2); }
+        .l2 { background: rgba(32, 201, 151, 0.5); }
+        .l3 { background: rgba(32, 201, 151, 0.8); }
+        .l4 { background: #20c997; box-shadow: 0 0 10px var(--primary-glow); }
+
+        .progress-bg {
+            height: 6px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 10px; 
+            overflow: hidden;
+        }
+        .progress-fill { height: 100%; border-radius: 10px; }
+
+        .topic-tag {
+            border: 1px solid rgba(143, 148, 251, 0.3);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: #d0d0ff;
+            transition: all 0.3s ease;
+            background: rgba(143, 148, 251, 0.05);
+            cursor: default;
+        }
+        .topic-tag:hover {
+            background: var(--secondary-glow);
+            color: #000;
+            border-color: var(--secondary-glow);
+            box-shadow: 0 0 15px var(--secondary-glow);
+            transform: scale(1.05);
+        }
+
+        /* --- SKILLS --- */
+        .skill-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            padding: 8px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(32, 201, 151, 0.1);
+            cursor: pointer; /* Indicates Clickable */
+        }
+
+        .skill-tag:hover {
+            background: var(--primary-glow);
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .btn-add-skill {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px dashed var(--text-muted);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .btn-add-skill:hover {
+            border-color: var(--secondary-glow);
+            color: var(--secondary-glow);
+            transform: rotate(90deg);
+            cursor: pointer;
+        }
+
+        /* --- MODALS --- */
+        .modal-content {
+            background-color: #0f0f1a;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+        
+        .modal-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .modal-footer { border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .form-control-dark {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+        .form-control-dark:focus {
+            background-color: rgba(255,255,255,0.05);
+            border-color: var(--secondary-glow);
+            color: white;
+            box-shadow: 0 0 10px rgba(143, 148, 251, 0.3);
+        }
+        
+        /* Ensure readonly input looks distinct */
+        .form-control-dark:read-only {
+            background-color: rgba(255,255,255,0.02);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-radial">
+    
+    <nav class="navbar navbar-expand-lg d-lg-none navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">CodeArena</a>
+            <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon "></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mobileMenu">
+                <ul class="navbar-nav mt-3">
+                    <li class="nav-item"><a class="nav-link-custom" href="{%url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
+                    <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-person"></i> Edit Profile</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                    <hr class="border-secondary opacity-25">
+                    <li class="nav-item d-flex align-items-center gap-3 py-2">
+                        <div class="avatar-circle" style="width:35px; height:35px; font-size: 0.8rem;">JD</div>
+                        <div>
+                            <div class="fw-bold text-white small">John Doe</div>
+                            <div class="text-cyan" style="font-size: 0.7rem;">Rank #44</div>
+                        </div>
+                    </li>
+                    <li class="nav-item mt-2"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <aside class="sidebar d-none d-lg-flex">
+        <div class="p-4 border-bottom border-white border-opacity-10">
+            <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
+        </div>
+
+        <nav class="mt-4 flex-grow-1 px-2">
+            <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
+            <a href="#" class="nav-link-custom"><i class="bi bi-person"></i> Edit Profile</a>
+            <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+            <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
+        </nav>
+
+        <div class="p-4 mt-auto border-top border-white border-opacity-10">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="avatar-circle">JD</div>
+                <div>
+                    <div class="fw-bold text-white">John Doe</div>
+                    <div class="text-cyan small">Rank #44</div>
+                </div>
+            </div>
+            <button class="btn btn-outline-danger btn-sm w-100 rounded-pill">Logout</button>
+        </div>
+    </aside>
+
+    <div class="main-content">
+       <div class="row mb-4">
+        <div class="col-12">
+            <div class="plugin-card" style="padding: 2.5rem;">
+                <div class="user-content d-flex align-items-center flex-wrap position-relative">
+                    
+                    <img src="{% static 'image.png' %}" class="profile-img me-md-5" alt="Profile Picture">
+                    
+                    <div class="py-2">
+                        <button class="rank-pulse">🏆 Rank #44</button>
+                        
+                        <h1 class="display-4 fw-bold mb-2 text-white" style="letter-spacing: -1px;">John Doe</h1>
+                        
+                        <p class="h5 mb-4" style="color: var(--text-muted); font-weight: 300;">
+                            Passionate Coder | Problem Solver | Open Source Enthusiast
+                        </p> 
+                        
+                        <div class="d-flex flex-wrap gap-4 mt-2" style="color: var(--text-muted); font-size: 0.95rem;">
+                            <span><i class=" me-2 text-neon-cyan"></i>✉️ johndoe@example.com</span>
+                            <span><i class=" me-2 text-neon-cyan"></i>📅 Member since Dec 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="plugin-card text-center p-4">
+                <div class="mb-2"><i class="bi bi-check-circle-fill fs-3 text-neon-cyan"></i></div>
+                <h3 class="fw-bold text-white mb-0 font-heading">213</h3>
+                <p class="small" style="color: gray;">Problems Solved</p>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="plugin-card text-center p-4">
+                <div class="mb-2"><i class="bi bi-fire fs-3" style="color: #ff6b6b;"></i></div>
+                <h3 class="fw-bold text-white mb-0 font-heading">7 days</h3>
+                <p class="small" style="color: gray;">Current Streak</p>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="plugin-card text-center p-4">
+                <div class="mb-2"><i class="bi bi-trophy-fill fs-3 text-gold"></i></div>
+                <h3 class="fw-bold text-white mb-0 font-heading">21 days</h3>
+                <p class="small" style="color: gray;">Max Streak</p>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="plugin-card text-center p-4">
+                <div class="mb-2"><i class="bi bi-code-slash fs-3 text-purple"></i></div>
+                <h3 class="fw-bold text-white mb-0 font-heading">324</h3>
+                <p class="small" style="color: gray;">Total Submissions</p>
+            </div>
+        </div>
+    </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="plugin-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="h4 font-heading mb-0 text-white">📅 Activity Calendar</span>
+                        <div class="d-flex align-items-center gap-1 small text-muted">
+                            <span>Less</span>
+                            <div class="day l0"></div><div class="day l1"></div><div class="day l2"></div><div class="day l3"></div><div class="day l4"></div>
+                            <span>More</span>
+                        </div>
+                    </div>
+                    <div class="calendar-body" id="calendar"></div>
+                </div>
+            </div>
+        </div>
+
+       <div class="row g-4">
+      <div class="col-md-6">
+          <div class="plugin-card">
+              <div class="user-content">
+                  <p class="font-heading h4 mb-4 text-white"><i class="bi bi-cpu me-2 text-neon-cyan"></i>Languages</p>
+                  
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
+                      <span>Data Structures</span>
+                      <span class="text-neon-cyan">85%</span>
+                    </div>
+                    <div class="progress-bg">
+                      <div class="progress-fill" style="width: 85%; background: var(--primary-glow); box-shadow: 0 0 10px var(--primary-glow);"></div>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
+                      <span>Algorithms</span>
+                      <span class="text-neon-cyan">70%</span>
+                    </div>
+                    <div class="progress-bg">
+                      <div class="progress-fill" style="width: 70%; background: var(--secondary-glow); box-shadow: 0 0 10px var(--secondary-glow);"></div>
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
+                      <span>System Design</span>
+                      <span class="text-neon-cyan">45%</span>
+                    </div>
+                    <div class="progress-bg">
+                      <div class="progress-fill" style="width: 45%; background: #ea00ff; box-shadow: 0 0 10px #ea00ff;"></div>
+                    </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div class="col-md-6">
+          <div class="plugin-card">
+              <div class="user-content">
+                  <p class="font-heading h4 mb-4 text-white"><i class="bi bi-journal-code me-2 text-purple"></i>Topics Covered</p>
+                  <div class="d-flex flex-wrap gap-2">
+                    <span class="topic-tag">Arrays</span>
+                    <span class="topic-tag">String</span>
+                    <span class="topic-tag">Hash Table</span>
+                    <span class="topic-tag">Dynamic Programming</span>
+                    <span class="topic-tag">Math</span>
+                    <span class="topic-tag">Sorting</span>
+                    <span class="topic-tag">Greedy</span>
+                    <span class="topic-tag">Binary Search</span>
+                    <span class="topic-tag">Tree</span>
+                    <span class="topic-tag">Graph</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+    <div class="row mt-4 mb-4">
+            <div class="col-12">
+                <div class="plugin-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="h4 font-heading mb-0 text-white">
+                            <i class="bi bi-tools me-2 text-gold"></i>Skills
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex flex-wrap align-items-center gap-3" id="skillsContainer">
+                        <div class="skill-tag">Java</div>
+                        <div class="skill-tag">Spring Boot</div>
+                        <div class="skill-tag">Git & GitHub</div>
+                        <div class="skill-tag">HTML/CSS</div>
+                        
+                        <button class="btn-add-skill" data-bs-toggle="modal" data-bs-target="#skillModal">
+                            <i class="bi bi-plus fs-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>
+
+ <div class="modal fade" id="skillModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title font-heading text-white">Add New Skill</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label text-secondary">Skill Name</label>
+                    <input type="text" id="newSkillInput" class="form-control form-control-dark" placeholder="Ex: React, Python, Docker...">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success btn-sm" onclick="addNewSkill()" style="background: var(--primary-glow); border:none; color:black; font-weight:bold;">Add Skill</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="manageSkillModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-heading text-white">Manage Skill</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label text-secondary small">Skill Name</label>
+                <input type="text" id="manageSkillInput" class="form-control form-control-dark" readonly>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSkill()">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- CALENDAR LOGIC (UNCHANGED) ---
+    const calendar = document.getElementById("calendar");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const currentYear = new Date().getFullYear();
+
+    function getDaysInMonth(year, monthIndex) {
+      return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
+    months.forEach((month, index) => {
+      const monthWrapper = document.createElement("div");
+      monthWrapper.style.display = "flex";
+      monthWrapper.style.flexDirection = "column";
+
+      const label = document.createElement("div");
+      label.style.fontSize = "10px";
+      label.style.color = "#aaa";
+      label.style.marginBottom = "5px";
+      label.innerText = month;
+
+      const monthGrid = document.createElement("div");
+      monthGrid.className = "month";
+
+      const daysInMonth = getDaysInMonth(currentYear, index);
+      const firstDay = new Date(currentYear, index, 1).getDay();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.style.visibility = "hidden";
+        monthGrid.appendChild(empty);
+      }
+
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const day = document.createElement("div");
+        const level = Math.floor(Math.random() * 5);
+        day.className = `day l${level}`;
+        day.title = `${month} ${dayNum}, ${currentYear}`;
+        monthGrid.appendChild(day);
+      }
+
+      monthWrapper.appendChild(label);
+      monthWrapper.appendChild(monthGrid);
+      calendar.appendChild(monthWrapper);
+    });
+
+    // --- ADD NEW SKILL LOGIC ---
+    function addNewSkill() {
+        const input = document.getElementById('newSkillInput');
+        const container = document.getElementById('skillsContainer');
+        const addButton = document.querySelector('.btn-add-skill');
+        
+        const skillName = input.value.trim();
+        
+        if(skillName) {
+            // 1. Create the new skill tag
+            const newSkill = document.createElement('div');
+            newSkill.className = 'skill-tag';
+            newSkill.innerText = skillName;
+            
+            // 2. Insert it before the + button
+            container.insertBefore(newSkill, addButton);
+            
+            // 3. Clear the text box
+            input.value = "";
+            
+            // 4. SECURELY CLOSE THE MODAL
+            const modalElement = document.getElementById('skillModal');
+            // 'getOrCreateInstance' fixes the "stuck" issue by ensuring we always have control of the window
+            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modalInstance.hide();
+        } else {
+            alert("Please enter a skill name!");
+        }
+    }
+    
+    // Allow pressing 'Enter' in the Add Skill box
+    document.getElementById('newSkillInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            addNewSkill();
+        }
+    });
+
+    // --- MANAGE SKILLS LOGIC (DELETE ONLY) ---
+    let currentSkillElement = null;
+    
+    const manageModalElement = document.getElementById('manageSkillModal');
+    
+    // Event Listener for clicking on skills (Delegated for dynamically added skills)
+    document.getElementById('skillsContainer').addEventListener('click', function(e) {
+        // .closest ensures we catch the click even if user clicks near the edge of the text
+        const clickedTag = e.target.closest('.skill-tag');
+
+        if (clickedTag) {
+            currentSkillElement = clickedTag; 
+            document.getElementById('manageSkillInput').value = currentSkillElement.innerText;
+            
+            // Open Modal using getOrCreateInstance (safest method)
+            const manageModal = bootstrap.Modal.getOrCreateInstance(manageModalElement);
+            manageModal.show();
+        }
+    });
+
+
+    function deleteSkill() {
+        if (currentSkillElement) {
+            // Visual effect
+            currentSkillElement.style.transform = "scale(0)";
+            // Remove from HTML after small delay
+            setTimeout(() => {
+                currentSkillElement.remove();
+            }, 300);
+            
+            // Close Modal
+            const manageModal = bootstrap.Modal.getOrCreateInstance(manageModalElement);
+            manageModal.hide();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeArena | Leaderboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <style>
+        /* --- 1. VARIABLES & BASICS --- */
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            /* Refined Rank Colors */
+            --gold: #ffcc00;
+            --silver: #e0e0e0;
+            --bronze: #ff8c42;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .bg-radial-fixed {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
+            z-index: -1;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        /* Refined Cyan Glow */
+        .text-cyan { 
+            color: var(--primary-glow) !important; 
+            text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
+        }
+
+        .gradient-heading {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to right, #ffffff, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- 3. GLASSMORPHISM CARDS --- */
+        .plugin-card.futuristic {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .plugin-card.futuristic:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(32, 201, 151, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- 4. BUTTONS --- */
+        .btn-glow {
+            background: linear-gradient(90deg, #20c997, #4e54c8);
+            color: white !important;
+            border: none;
+            padding: 0.4rem 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(32, 201, 151, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* --- 5. INPUTS --- */
+        .form-control-dark {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: #fff;
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+        }
+
+        /* --- 6. NAVBAR & SIDEBAR --- */
+        .navbar-glass {
+            background: rgba(10, 10, 20, 0.85) !important;
+            backdrop-filter: blur(12px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .navbar-brand-custom {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(10, 10, 20, 0.65);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1050;
+        }
+
+        .nav-link-custom {
+            padding: 12px 20px;
+            margin: 6px 15px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background: rgba(32, 201, 151, 0.1);
+            color: #ffffff;
+            border-left: 2px solid var(--primary-glow);
+        }
+
+        /* --- 7. TABLE STYLES --- */
+        .table { color: #cfcfe6; --bs-table-bg: transparent; }
+        .table thead th {
+            background: rgba(10, 10, 20, 0.9);
+            color: var(--primary-glow);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 18px;
+        }
+
+        /* Rank Highlight Colors */
+        .rank-gold { color: var(--gold) !important; text-shadow: 0 0 10px rgba(255, 204, 0, 0.4); }
+        .rank-silver { color: var(--silver) !important; text-shadow: 0 0 10px rgba(224, 224, 224, 0.3); }
+        .rank-bronze { color: var(--bronze) !important; text-shadow: 0 0 10px rgba(255, 140, 66, 0.3); }
+
+        /* --- 8. MISC --- */
+        .avatar-circle {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #000; font-family: 'Orbitron', sans-serif;
+        }
+
+        .main-content { padding: 20px; flex-grow: 1; }
+        @media (min-width: 992px) { .main-content { margin-left: 280px; padding: 40px; } }
+    </style>
+</head>
+
+<body>
+    <div class="bg-radial-fixed"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-glass d-lg-none sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand-custom" href="#">CodeArena</a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mobileMenu">
+                <ul class="navbar-nav mt-3">
+                    <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-terminal"></i> Problems</a></li>
+                    <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-person"></i> Profile</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i>Quiz</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <aside class="sidebar d-none d-lg-flex">
+        <div class="p-4 border-bottom border-white border-opacity-10">
+            <span class="navbar-brand-custom">CodeArena</span>
+        </div>
+        <nav class="mt-4 flex-grow-1">
+            <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
+            <a href="{%url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
+            <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+        </nav>
+        <div class="p-4 mt-auto border-top border-white border-opacity-10">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="avatar-circle">JD</div>
+                <div>
+                    <div class="fw-bold text-white">Demo User</div>
+                    <div class="text-cyan small">Rank #001</div>
+                </div>
+            </div>
+            <button class="btn btn-outline-danger btn-sm w-100 rounded-pill">Logout</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="mb-5">
+            <h2 class="fw-bold gradient-heading text-start mb-2">Hall of Fame</h2>
+            <p class="text-secondary mb-0">The elite coders dominating the CodeArena leaderboard.</p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4 order-md-1">
+                <div class="plugin-card futuristic text-center">
+                    <div class="rank-silver fs-2 mb-2"><i class="bi bi-award-fill"></i></div>
+                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">SE</div>
+                    <h5 class="fw-bold font-orbitron mb-1 text-white">SyntaxError</h5>
+                    <p class="text-secondary small">Expert Developer</p>
+                    <div class="mt-2 text-cyan fw-bold">14,250 PTS</div>
+                </div>
+            </div>
+            <div class="col-md-4 order-md-2">
+                <div class="plugin-card futuristic text-center border-primary border-opacity-25" style="background: rgba(32, 201, 151, 0.05);">
+                    <div class="rank-gold fs-1 mb-2"><i class="bi bi-trophy-fill"></i></div>
+                    <div class="avatar-circle mx-auto mb-3" style="width: 75px; height: 75px; font-size: 1.5rem; border: 2px solid var(--gold);">BB</div>
+                    <h4 class="fw-bold font-orbitron mb-1 text-white">BinaryBeast</h4>
+                    <p class="text-cyan small">Arena Master</p>
+                    <div class="mt-2 text-cyan fw-bold fs-5">15,800 PTS</div>
+                </div>
+            </div>
+            <div class="col-md-4 order-md-3">
+                <div class="plugin-card futuristic text-center">
+                    <div class="rank-bronze fs-2 mb-2"><i class="bi bi-award-fill"></i></div>
+                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">NP</div>
+                    <h5 class="fw-bold font-orbitron mb-1 text-white">NullPointer</h5>
+                    <p class="text-secondary small">Senior Expert</p>
+                    <div class="mt-2 text-cyan fw-bold">12,100 PTS</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="plugin-card futuristic p-0 overflow-hidden">
+            <div class="p-4 border-bottom border-white border-opacity-10 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold font-orbitron text-white">Global Standings</h5>
+                <div style="width: 250px;">
+                    <input class="form-control-dark w-100" placeholder="Find coder...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Rank</th>
+                            <th>Coder</th>
+                            <th>Status</th>
+                            <th>Solved</th>
+                            <th class="text-end pe-4">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4 fw-bold rank-gold">#1</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle" style="width:32px; height:32px; font-size: 0.7rem;">BB</div>
+                                    <span class="text-white fw-bold">BinaryBeast</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-white bg-opacity-10 text-cyan border border-cyan border-opacity-25">Master</span></td>
+                            <td class="text-secondary">482</td>
+                            <td class="text-end pe-4 fw-bold text-white">15,800</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 fw-bold rank-silver">#2</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle" style="width:32px; height:32px; font-size: 0.7rem;">SE</div>
+                                    <span class="text-white fw-bold">SyntaxError</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-white bg-opacity-10 text-white">Expert</span></td>
+                            <td class="text-secondary">415</td>
+                            <td class="text-end pe-4 text-white">14,250</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 fw-bold rank-bronze">#3</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle" style="width:32px; height:32px; font-size: 0.7rem;">NP</div>
+                                    <span class="text-white fw-bold">NullPointer</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-white bg-opacity-10 text-white">Expert</span></td>
+                            <td class="text-secondary">390</td>
+                            <td class="text-end pe-4 text-white">12,100</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 text-secondary fw-bold">#4</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle" style="width:32px; height:32px; font-size: 0.7rem;">LL</div>
+                                    <span class="text-white fw-bold">LogicLord</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-white bg-opacity-10 text-white">Pro</span></td>
+                            <td class="text-secondary">310</td>
+                            <td class="text-end pe-4 text-white">10,500</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 text-center border-top border-white border-opacity-10">
+                <a href="#" class="btn btn-sm btn-glow px-4">See More Rankings</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
