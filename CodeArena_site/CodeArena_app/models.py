@@ -103,6 +103,9 @@ class UserMCQAttempt(models.Model):
     is_correct = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
     attempted_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'quiz')
+
 
 
 # --- Coding Problems Models ---

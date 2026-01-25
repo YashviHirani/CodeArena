@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt
+from django.views.decorators.csrf import csrf_exempt
 
 
 def home(request):
@@ -35,29 +36,32 @@ def quiz_home(request):
     return render(request, 'quiz.html', {'languages': languages})
 
 
-# ✅ SINGLE, CORRECT VERSION
-
+@login_required
 def inside_quiz(request):
     language_id = request.GET.get('lang')
-
     if not language_id:
         return HttpResponse("Language not provided", status=400)
 
     language = get_object_or_404(Language, id=language_id)
 
+    # IDs of questions user answered correctly
+    solved_quiz_ids = UserMCQAttempt.objects.filter(
+        user=request.user,
+        is_correct=True
+    ).values_list('quiz_id', flat=True)
+
     quizzes = (
         Quiz.objects
         .select_related('question')
         .filter(language=language)
+        .exclude(id__in=solved_quiz_ids)
         .order_by('?')[:10]
     )
 
     if not quizzes.exists():
-        return HttpResponse("No quiz questions available", status=404)
+        return HttpResponse("You have completed all questions 🎉")
 
-    # 🔥 Convert Django objects → JS-friendly JSON
     quiz_data = []
-
     for quiz in quizzes:
         q = quiz.question
         quiz_data.append({
@@ -68,8 +72,7 @@ def inside_quiz(request):
                 q.option_b,
                 q.option_c,
                 q.option_d
-            ],
-            "answer": q.correct_option
+            ]
         })
 
     return render(request, 'insideQuiz.html', {
@@ -83,10 +86,13 @@ def start_quiz(request):
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 
+@csrf_exempt
 def save_mcq_answer(request):
     if request.method == "POST":
-        quiz_id = request.POST.get("quiz_id")
-        selected_option = request.POST.get("selected_option")
+        data = json.loads(request.body)
+
+        quiz_id = data.get("quiz_id")
+        selected_option = data.get("selected_option")
 
         quiz = get_object_or_404(Quiz, id=quiz_id)
         is_correct = selected_option == quiz.question.correct_option
@@ -101,7 +107,9 @@ def save_mcq_answer(request):
             }
         )
 
-        return JsonResponse({"correct": is_correct})
+        return JsonResponse({
+            "correct": is_correct
+        })
 
 
 def DebuggingQuiz(request):
