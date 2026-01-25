@@ -1,5 +1,10 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import User, UserProfile, Language, MCQ, Quiz, Topic, Problem
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    pass
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -16,7 +21,6 @@ class QuizAdmin(admin.ModelAdmin):
     list_filter = ('language', 'difficulty')
 
 # Simple registration for the rest
-admin.site.register(User)
 admin.site.register(Language)
 admin.site.register(Topic)
 admin.site.register(Problem)
