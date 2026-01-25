@@ -28,10 +28,14 @@ urlpatterns = [
     path('',views.home,name='home'),
     path("dashboard/",views.dashboard,name='dashboard'),  
     path('profile/',views.profile,name='profile'),
-    path('quiz/',views.quiz,name="quiz"),
-    path('insideQuiz',views.insideQuiz,name="insideQuiz"),     
+    # path('quiz/',views.quiz,name="quiz"),
+    path('insideQuiz',views.inside_quiz,name="insideQuiz"),     
     path('DebuggingQuiz',views.DebuggingQuiz,name="DebuggingQuiz"),     
-    path("leaderboard",views.leaderboard,name="leaderboard"),                                                                                    
+    path("leaderboard",views.leaderboard,name="leaderboard"),
+
+    path('quiz/', views.quiz_home, name='quiz'),
+    path('quiz/start/', views.start_quiz, name='start_quiz'),
+    path('quiz/<int:language_id>/', views.inside_quiz, name='insideQuiz'),                                                                                    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
