@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 import json
-from CodeArena_app.models import Language, Quiz, UserMCQAttempt
+from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -36,7 +36,7 @@ def quiz_home(request):
     return render(request, 'quiz.html', {'languages': languages})
 
 
-@login_required
+# @login_required
 def inside_quiz(request):
     language_id = request.GET.get('lang')
     if not language_id:
@@ -44,12 +44,13 @@ def inside_quiz(request):
 
     language = get_object_or_404(Language, id=language_id)
 
-    # IDs of questions user answered correctly
+    # ✅ quizzes already solved correctly by the user
     solved_quiz_ids = UserMCQAttempt.objects.filter(
-        user=request.user,
+        user_id=request.user.id,
         is_correct=True
     ).values_list('quiz_id', flat=True)
 
+    # ✅ fetch quizzes for this language, excluding solved ones
     quizzes = (
         Quiz.objects
         .select_related('question')
@@ -61,31 +62,33 @@ def inside_quiz(request):
     if not quizzes.exists():
         return HttpResponse("You have completed all questions 🎉")
 
-    quiz_data = []
-    for quiz in quizzes:
-        q = quiz.question
-        quiz_data.append({
+    quiz_data = [
+        {
             "quiz_id": quiz.id,
-            "question": q.question_text,
+            "question": quiz.question.question_text,
             "options": [
-                q.option_a,
-                q.option_b,
-                q.option_c,
-                q.option_d
+                quiz.question.option_a,
+                quiz.question.option_b,
+                quiz.question.option_c,
+                quiz.question.option_d,
             ]
-        })
+        }
+        for quiz in quizzes
+    ]
 
     return render(request, 'insideQuiz.html', {
         "language": language,
         "quiz_data": json.dumps(quiz_data)
     })
 
+    return render(request, 'inside_quiz.html', context)
 def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 
+# @login_required
 @csrf_exempt
 def save_mcq_answer(request):
     if request.method == "POST":
@@ -107,9 +110,7 @@ def save_mcq_answer(request):
             }
         )
 
-        return JsonResponse({
-            "correct": is_correct
-        })
+        return JsonResponse({"correct": is_correct})
 
 
 def DebuggingQuiz(request):
