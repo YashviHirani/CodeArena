@@ -2,9 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-import json
-from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 from django.views.decorators.csrf import csrf_exempt
+import json
+
+from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
+
+# from CodeArena.CodeArena_site.CodeArena_app.models import Language, Quiz, UserMCQAttempt
 
 
 def home(request):
@@ -33,34 +36,61 @@ def quiz(request):
 
 def quiz_home(request):
     languages = Language.objects.all()
-    return render(request, 'quiz.html', {'languages': languages})
+    return render(request, 'quiz.html', {
+        'languages': languages
+    })
 
 
-# @login_required
 def inside_quiz(request):
-    language_id = request.GET.get('lang')
+    language_id = request.GET.get("lang")
     if not language_id:
         return HttpResponse("Language not provided", status=400)
 
     language = get_object_or_404(Language, id=language_id)
 
-    # ✅ quizzes already solved correctly by the user
-    solved_quiz_ids = UserMCQAttempt.objects.filter(
-        user_id=request.user.id,
-        is_correct=True
-    ).values_list('quiz_id', flat=True)
+    # ===============================
+    # ✅ CASE 1: USER IS LOGGED IN
+    # ===============================
+    if request.user.is_authenticated:
+        solved_correct = UserMCQAttempt.objects.filter(
+            user=request.user,
+            is_correct=True
+        ).values_list("quiz_id", flat=True)
 
-    # ✅ fetch quizzes for this language, excluding solved ones
-    quizzes = (
-        Quiz.objects
-        .select_related('question')
-        .filter(language=language)
-        .exclude(id__in=solved_quiz_ids)
-        .order_by('?')[:10]
-    )
+        solved_wrong = UserMCQAttempt.objects.filter(
+            user=request.user,
+            is_correct=False
+        ).values_list("quiz_id", flat=True)
 
-    if not quizzes.exists():
-        return HttpResponse("You have completed all questions 🎉")
+        wrong_quizzes = Quiz.objects.filter(
+            id__in=solved_wrong,
+            language=language,
+            quiz_type="MCQ"
+        )
+
+        new_quizzes = Quiz.objects.filter(
+            language=language,
+            quiz_type="MCQ"
+        ).exclude(
+            id__in=solved_correct
+        ).exclude(
+            id__in=solved_wrong
+        )
+
+        quizzes = list(wrong_quizzes) + list(new_quizzes)
+        quizzes = quizzes[:10]
+
+    # ===============================
+    # ❌ CASE 2: ANONYMOUS USER
+    # ===============================
+    else:
+        quizzes = Quiz.objects.filter(
+            language=language,
+            quiz_type="MCQ"
+        ).order_by("?")[:10]
+
+    if not quizzes:
+        return HttpResponse("No questions available")
 
     quiz_data = [
         {
@@ -76,45 +106,117 @@ def inside_quiz(request):
         for quiz in quizzes
     ]
 
-    return render(request, 'insideQuiz.html', {
+    return render(request, "insideQuiz.html", {
         "language": language,
-        "quiz_data": json.dumps(quiz_data)
+        "quiz_data": json.dumps(quiz_data),
+        "is_authenticated": request.user.is_authenticated
     })
 
-    return render(request, 'inside_quiz.html', context)
+
 def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 
-# @login_required
 @csrf_exempt
 def save_mcq_answer(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        quiz_id = data.get("quiz_id")
-        selected_option = data.get("selected_option")
-
-        quiz = get_object_or_404(Quiz, id=quiz_id)
-        is_correct = selected_option == quiz.question.correct_option
-
-        UserMCQAttempt.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={
-                "selected_option": selected_option,
-                "is_correct": is_correct,
-                "completed": is_correct
-            }
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"error": "Login required to save progress"},
+            status=401
         )
 
-        return JsonResponse({"correct": is_correct})
+    data = json.loads(request.body)
+
+    quiz = get_object_or_404(Quiz, id=data["quiz_id"])
+    selected = data["selected_option"]
+    is_correct = selected == quiz.question.correct_option
+
+    attempt, _ = UserMCQAttempt.objects.get_or_create(
+        user=request.user,
+        quiz=quiz,
+        defaults={
+            "selected_option": selected,
+            "is_correct": is_correct,
+            "completed": is_correct
+        }
+    )
+
+    if not attempt.is_correct:
+        attempt.selected_option = selected
+        attempt.is_correct = is_correct
+        attempt.completed = is_correct
+        attempt.save()
+
+    return JsonResponse({"correct": is_correct})
+def debugging_quiz(request):
+    lang_id = request.GET.get("lang")
+    if not lang_id:
+        return HttpResponse("Language not provided", status=400)
+
+    language = get_object_or_404(Language, id=lang_id)
+
+    # ✅ Solved attempts
+    solved_correct = UserMCQAttempt.objects.filter(
+        user=request.user,
+        is_correct=True,
+        quiz__quiz_type="DEBUG"
+    ).values_list("quiz_id", flat=True)
+
+    solved_wrong = UserMCQAttempt.objects.filter(
+        user=request.user,
+        is_correct=False,
+        quiz__quiz_type="DEBUG"
+    ).values_list("quiz_id", flat=True)
+
+    # ❌ repeat wrong
+    wrong_quizzes = Quiz.objects.filter(
+        id__in=solved_wrong,
+        quiz_type="DEBUG",
+        language=language
+    )
+
+    # 🆕 new quizzes
+    new_quizzes = Quiz.objects.filter(
+        quiz_type="DEBUG",
+        language=language
+    ).exclude(
+        id__in=solved_correct
+    ).exclude(
+        id__in=solved_wrong
+    )
+
+    quizzes = list(wrong_quizzes) + list(new_quizzes)
+    quizzes = quizzes[:10]
+
+    if not quizzes:
+        return HttpResponse("All Debugging questions solved 🎉")
+
+    quiz_data = []
+    for quiz in quizzes:
+        q = quiz.question
+        quiz_data.append({
+            "quiz_id": quiz.id,
+            "question": q.question_text,
+            "options": [
+                q.option_a,
+                q.option_b,
+                q.option_c,
+                q.option_d,
+            ],
+            "difficulty": quiz.get_difficulty_display(),
+            "correct": q.correct_option  # needed for UI feedback
+        })
+
+    return render(request, "DebuggingQuiz.html", {
+        "quiz_data": json.dumps(quiz_data),
+        "lang_id": lang_id
+    })
 
 
-def DebuggingQuiz(request):
-    return render(request, "DebuggingQuiz.html")
+
+
 
 
 def leaderboard(request):
@@ -133,3 +235,33 @@ def get_quiz_questions(user, language, limit=10):
     ).distinct().order_by('?')[:limit]
 
     return quizzes
+
+
+def get_quizzes(user, language, quiz_type, limit=10):
+    solved_correct = UserMCQAttempt.objects.filter(
+        user=user,
+        is_correct=True
+    ).values_list("quiz_id", flat=True)
+
+    solved_wrong = UserMCQAttempt.objects.filter(
+        user=user,
+        is_correct=False
+    ).values_list("quiz_id", flat=True)
+
+    wrong = Quiz.objects.filter(
+        id__in=solved_wrong,
+        quiz_type=quiz_type,
+        language=language
+    )
+
+    new = Quiz.objects.filter(
+        quiz_type=quiz_type,
+        language=language
+    ).exclude(
+        id__in=solved_correct
+    ).exclude(
+        id__in=solved_wrong
+    )
+
+    quizzes = list(wrong) + list(new)
+    return quizzes[:limit]
