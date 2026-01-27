@@ -38,7 +38,9 @@ urlpatterns = [
     path('quiz/mcq/', views.inside_quiz, name='insideQuiz'),
     path('quiz/debug/', views.debugging_quiz, name='debuggingQuiz'),
 
-    path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'),                                                                                    
+    path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'), 
+    path("quiz/summary/", views.quiz_summary, name="quiz_summary"),
+                                                                                   
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -11,7 +11,7 @@
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap"
-          rel="stylesheet">
+        rel="stylesheet">
 
     <style>
         :root {
@@ -43,7 +43,7 @@
         }
 
         .option {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--card-border);
             border-radius: 14px;
             padding: 16px 20px;
@@ -87,7 +87,7 @@
 
         .progress {
             height: 6px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             overflow: hidden;
         }
@@ -100,154 +100,173 @@
 
 <body>
 
-<div class="container py-5" style="max-width: 900px;">
+    <div class="container py-5" style="max-width: 900px;">
 
-    <!-- HEADER -->
-    <div class="text-center mb-5">
-        <h1 class="fw-bold font-orbitron">Debugging Quiz</h1>
-        <p class="text-secondary">Find bugs • Predict output • Fix logic</p>
-    </div>
-
-    <!-- INFO BAR -->
-    <div class="mb-4">
-        <div class="d-flex justify-content-between mb-2">
-            <small id="qInfo">Question</small>
-            <small id="scoreInfo">Score: 0</small>
+        <!-- HEADER -->
+        <div class="text-center mb-5">
+            <h1 class="fw-bold font-orbitron">Debugging Quiz</h1>
+            <p class="text-secondary">Find bugs • Predict output • Fix logic</p>
         </div>
-        <div class="progress">
-            <div class="progress-bar" id="progressBar"></div>
+
+        <!-- INFO BAR -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <small id="qInfo">Question</small>
+                <small id="scoreInfo">Score: 0</small>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
         </div>
+
+        <!-- QUIZ -->
+        <div id="quizBox" class="glass-card mb-4">
+            <h4 id="question" class="mb-4"></h4>
+            <div id="options" class="d-flex flex-column gap-3"></div>
+        </div>
+
+        <!-- ACTION -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'quiz_home' %}" class="btn btn-outline-secondary">Exit</a>
+            <button id="actionBtn" class="btn btn-glow" disabled>Submit</button>
+        </div>
+
+        <!-- RESULT -->
+        <div id="resultBox" class="glass-card text-center mt-5 d-none">
+            <h2 class="font-orbitron mb-3">Debugging Complete</h2>
+            <h1 class="display-5 fw-bold" id="finalScore"></h1>
+            <a href="{% url 'quiz_home' %}" class="btn btn-glow mt-3">Back to Hub</a>
+            <br>
+            <button class="btn btn-success mt-3" onclick="goToSummary()">
+                View Quiz Summary
+            </button>
+
+
+        </div>
+
     </div>
 
-    <!-- QUIZ -->
-    <div id="quizBox" class="glass-card mb-4">
-        <h4 id="question" class="mb-4"></h4>
-        <div id="options" class="d-flex flex-column gap-3"></div>
-    </div>
+    <!-- BACKEND DATA -->
+    <script>
+        const questions = {{ quiz_data| safe }};
+    </script>
 
-    <!-- ACTION -->
-    <div class="d-flex justify-content-between">
-        <a href="{% url 'quiz_home' %}" class="btn btn-outline-secondary">Exit</a>
-        <button id="actionBtn" class="btn btn-glow" disabled>Submit</button>
-    </div>
+    <script>
+        
 
-    <!-- RESULT -->
-    <div id="resultBox" class="glass-card text-center mt-5 d-none">
-        <h2 class="font-orbitron mb-3">Debugging Complete</h2>
-        <h1 class="display-5 fw-bold" id="finalScore"></h1>
-        <a href="{% url 'quiz_home' %}" class="btn btn-glow mt-3">Back to Hub</a>
-    </div>
+        // Store current quiz IDs (ONLY this quiz run)
+        const currentQuizIds = questions.map(q => q.quiz_id);
+        sessionStorage.setItem("current_quiz_ids", JSON.stringify(currentQuizIds));
 
-</div>
+        let index = 0;
+        let selected = null;
+        let score = 0;
+        let locked = false;
 
-<!-- BACKEND DATA -->
-<script>
-    const questions = {{ quiz_data|safe }};
-</script>
+        const optionMap = ["A", "B", "C", "D"];
 
-<script>
-    let index = 0;
-    let selected = null;
-    let score = 0;
-    let locked = false;
+        const qInfo = document.getElementById("qInfo");
+        const scoreInfo = document.getElementById("scoreInfo");
+        const progressBar = document.getElementById("progressBar");
+        const questionEl = document.getElementById("question");
+        const optionsEl = document.getElementById("options");
+        const actionBtn = document.getElementById("actionBtn");
 
-    const optionMap = ["A", "B", "C", "D"];
-
-    const qInfo = document.getElementById("qInfo");
-    const scoreInfo = document.getElementById("scoreInfo");
-    const progressBar = document.getElementById("progressBar");
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-    const actionBtn = document.getElementById("actionBtn");
-
-    if (!questions || questions.length === 0) {
-        questionEl.innerText = "No debugging questions available.";
-    } else {
-        load();
-    }
-
-    function load() {
-        locked = false;
-        selected = null;
-
-        const q = questions[index];
-
-        qInfo.innerText = `Question ${index + 1} of ${questions.length}`;
-        scoreInfo.innerText = `Score: ${score}`;
-        progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
-
-        questionEl.innerText = q.question;
-        optionsEl.innerHTML = "";
-
-        q.options.forEach((text, i) => {
-            const div = document.createElement("div");
-            div.className = "option";
-            div.innerText = text;
-            div.onclick = () => selectOption(i, div);
-            optionsEl.appendChild(div);
-        });
-
-        actionBtn.innerText = "Submit";
-        actionBtn.disabled = true;
-    }
-
-    function selectOption(i, el) {
-        if (locked) return;
-        selected = i;
-        actionBtn.disabled = false;
-        document.querySelectorAll(".option").forEach(o => o.classList.remove("active"));
-        el.classList.add("active");
-    }
-
-    async function submit() {
-        if (selected === null) return;
-
-        const q = questions[index];
-
-        if (!locked) {
-            locked = true;
-
-            await fetch("/quiz/save-answer/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                    quiz_id: q.quiz_id,
-                    selected_option: optionMap[selected]
-                })
-            });
-
-            document.querySelectorAll(".option").forEach((o, i) => {
-                if (optionMap[i] === q.correct) o.classList.add("correct");
-                if (i === selected && optionMap[i] !== q.correct) o.classList.add("wrong");
-            });
-
-            if (optionMap[selected] === q.correct) score++;
-
-            actionBtn.innerText =
-                index === questions.length - 1 ? "View Result" : "Next Question";
-
+        if (!questions || questions.length === 0) {
+            questionEl.innerText = "No debugging questions available.";
         } else {
-            index++;
-            if (index < questions.length) load();
-            else showResult();
+            load();
         }
-    }
 
-    function showResult() {
-        document.getElementById("quizBox").classList.add("d-none");
-        document.getElementById("resultBox").classList.remove("d-none");
-        document.querySelector(".mb-4").classList.add("d-none");
-        actionBtn.classList.add("d-none");
+        function load() {
+            locked = false;
+            selected = null;
 
-        document.getElementById("finalScore").innerText =
-            `${score} / ${questions.length}`;
-    }
+            const q = questions[index];
 
-    actionBtn.onclick = submit;
-</script>
+            qInfo.innerText = `Question ${index + 1} of ${questions.length}`;
+            scoreInfo.innerText = `Score: ${score}`;
+            progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
+
+            questionEl.innerText = q.question;
+            optionsEl.innerHTML = "";
+
+            q.options.forEach((text, i) => {
+                const div = document.createElement("div");
+                div.className = "option";
+                div.innerText = text;
+                div.onclick = () => selectOption(i, div);
+                optionsEl.appendChild(div);
+            });
+
+            actionBtn.innerText = "Submit";
+            actionBtn.disabled = true;
+        }
+
+        function selectOption(i, el) {
+            if (locked) return;
+            selected = i;
+            actionBtn.disabled = false;
+            document.querySelectorAll(".option").forEach(o => o.classList.remove("active"));
+            el.classList.add("active");
+        }
+
+        async function submit() {
+            if (selected === null) return;
+
+            const q = questions[index];
+
+            if (!locked) {
+                locked = true;
+
+                await fetch("/quiz/save-answer/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        quiz_id: q.quiz_id,
+                        selected_option: optionMap[selected]
+                    })
+                });
+
+                document.querySelectorAll(".option").forEach((o, i) => {
+                    if (optionMap[i] === q.correct) o.classList.add("correct");
+                    if (i === selected && optionMap[i] !== q.correct) o.classList.add("wrong");
+                });
+
+                if (optionMap[selected] === q.correct) score++;
+
+                actionBtn.innerText =
+                    index === questions.length - 1 ? "View Result" : "Next Question";
+
+            } else {
+                index++;
+                if (index < questions.length) load();
+                else showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById("quizBox").classList.add("d-none");
+            document.getElementById("resultBox").classList.remove("d-none");
+            document.querySelector(".mb-4").classList.add("d-none");
+            actionBtn.classList.add("d-none");
+
+            document.getElementById("finalScore").innerText =
+                `${score} / ${questions.length}`;
+        }
+
+        actionBtn.onclick = submit;
+
+        function goToSummary() {
+            const ids = sessionStorage.getItem("current_quiz_ids");
+            window.location.href = `/quiz/summary/?ids=${ids}`;
+        }
+
+    </script>
 
 </body>
+
 </html>

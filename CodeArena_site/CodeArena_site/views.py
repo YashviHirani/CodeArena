@@ -215,7 +215,48 @@ def debugging_quiz(request):
     })
 
 
+# from django.contrib.auth.decorators import login_required
 
+# @login_required
+def quiz_summary(request):
+    ids = request.GET.get("ids")
+
+    if not ids:
+        return HttpResponse("No quiz session found", status=400)
+
+    quiz_ids = json.loads(ids)
+
+    attempts = (
+        UserMCQAttempt.objects
+        .filter(
+            user=request.user,
+            quiz_id__in=quiz_ids   # 🔥 ONLY CURRENT QUIZ
+        )
+        .select_related("quiz__question")
+        .order_by("attempted_at")
+    )
+
+    summary = []
+
+    for att in attempts:
+        q = att.quiz.question
+        summary.append({
+            "question": q.question_text,
+            "options": {
+                "A": q.option_a,
+                "B": q.option_b,
+                "C": q.option_c,
+                "D": q.option_d,
+            },
+            "correct": q.correct_option,
+            "selected": att.selected_option,
+            "is_correct": att.is_correct,
+            "explanation": q.explanation,
+        })
+
+    return render(request, "quiz_summary.html", {
+        "summary": summary
+    })
 
 
 
