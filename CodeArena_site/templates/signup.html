@@ -209,6 +209,7 @@
       </div>
 
       <form method="POST">
+        {% csrf_token %}
         <input type="hidden" name="signup">
 
         <div class="input-group">
