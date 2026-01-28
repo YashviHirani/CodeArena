@@ -19,4 +19,7 @@ urlpatterns = [
     path('insideQuiz/', views.insideQuiz_view, name='insideQuiz'),
     path('DebuggingQuiz/', views.DebuggingQuiz_view, name='DebuggingQuiz'),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
+    path("update-skills/", views.update_skills, name="update_skills"),
+    path("problem/<int:problem_id>/", views.problem_detail_view, name="problem_detail"),
+    path("submit/<int:problem_id>/", views.submit_solution, name="submit_solution"),
 ]

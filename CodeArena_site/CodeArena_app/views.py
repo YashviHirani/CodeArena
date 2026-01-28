@@ -15,12 +15,7 @@ from django.conf import settings
 def home_view(request):
     return render(request, "home.html")
 
-
 # ---------------- LOGIN ----------------
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -80,10 +75,40 @@ def dashboard_view(request):
 
 # ---------------- PROFILE ----------------
 
+from django.utils.timezone import localtime
+from datetime import date
+
+from .models import DailySubmission
+
 @login_required
 def profile_view(request):
-    user_profile = UserProfile.objects.get(user=request.user)
-    return render(request, 'profile.html', {'profile': user_profile})
+    user = request.user
+    profile = user.profile
+
+    total_solved = (
+        profile.easy_solved +
+        profile.medium_solved +
+        profile.hard_solved
+    )
+
+    submissions = DailySubmission.objects.filter(user=user)
+
+    activity = {
+        s.date.strftime("%Y-%m-%d"): min(s.count, 4)
+        for s in submissions
+    }
+
+    context = {
+        "user": user,
+        "profile": profile,
+        "total_solved": total_solved,
+        "member_since": user.date_joined,
+        "activity": activity,
+    }
+
+    return render(request, "profile.html", context)
+
+
 
 # ---------------- QUIZ ----------------
 
@@ -122,3 +147,100 @@ def edit_profile_view(request):
 def create_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+# ------------------- Update skill in database -----------------------
+@login_required
+def update_skills(request):
+    if request.method == "POST":
+        skill = request.POST.get("skill", "")
+        action = request.POST.get("action")
+
+        profile = request.user.profile
+
+        # 🔥 NORMALIZE DATA (FIXES DELETE ISSUE)
+        skill = skill.strip().lower()
+        skills = [s.strip().lower() for s in profile.get_skills_list()]
+
+        if action == "add" and skill and skill not in skills:
+            skills.append(skill)
+
+        if action == "remove" and skill in skills:
+            skills.remove(skill)
+
+        # Save back as comma-separated string
+        profile.skills = ",".join(skills)
+        profile.save()
+
+        return JsonResponse({"status": "ok"})
+
+# --------------------- For total and daily submissions of user -------------------------
+from django.utils.timezone import now
+from .models import DailySubmission
+
+@login_required
+def submit_solution(request, problem_id):
+    profile = request.user.profile
+
+    # 1️⃣ total submissions
+    profile.total_submissions += 1
+    profile.save()
+
+    # 2️⃣ daily submission
+    today = now().date()
+    daily, created = DailySubmission.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+    daily.count += 1
+    daily.save()
+
+# ------------------- Dashboard : to load problems from database  -----------------------
+
+from .models import Problem
+
+@login_required
+def dashboard_view(request):
+    problems = Problem.objects.all()
+
+    return render(request, "dashboard.html", {
+        "problems": problems
+    })
+
+# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
+from .models import Problem
+
+@login_required
+def problem_detail_view(request, problem_id):
+    problem = Problem.objects.get(id=problem_id)
+
+    return render(request, "problemPage.html", {
+        "problem": problem
+    })
+
+# ------------------- SUBMISSION LOGIC (THIS IS THE HEART ❤️) -----------------------
+
+from django.utils.timezone import now
+from .models import DailySubmission
+
+@login_required
+def submit_solution(request, problem_id):
+    if request.method == "POST":
+        profile = request.user.profile
+
+        # 1️⃣ Total submissions
+        profile.total_submissions += 1
+        profile.save()
+
+        # 2️⃣ Daily submissions
+        today = now().date()
+        daily, created = DailySubmission.objects.get_or_create(
+            user=request.user,
+            date=today
+        )
+        daily.count += 1
+        daily.save()
+
+        return JsonResponse({"status": "accepted"})
