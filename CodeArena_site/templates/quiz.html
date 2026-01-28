@@ -7,12 +7,13 @@
     <title>CodeArena | Quiz Arena</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* --- THEME VARIABLES (MATCHING HOME.HTML) --- */
+        /* --- THEME VARIABLES --- */
         :root {
             --primary-glow: #20c997;
             --secondary-glow: #8f94fb;
@@ -36,13 +37,16 @@
             width: 100%;
         }
 
-        h1, h2, h3, h4, h5, .font-heading {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        .font-heading {
             font-family: 'Orbitron', sans-serif;
         }
 
-        /* --- SIDEBAR & NAVBAR STYLING --- */
-        
-        /* Mobile Navbar */
+        /* --- NAVBAR & SIDEBAR --- */
         .navbar {
             background: rgba(10, 10, 20, 0.85);
             backdrop-filter: blur(12px);
@@ -58,14 +62,15 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Desktop Sidebar */
         .sidebar {
             width: 280px;
             background: rgba(15, 15, 26, 0.8);
             backdrop-filter: blur(10px);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             position: fixed;
-            top: 0; bottom: 0; left: 0;
+            top: 0;
+            bottom: 0;
+            left: 0;
             display: flex;
             flex-direction: column;
             z-index: 1050;
@@ -92,7 +97,6 @@
             text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
         }
 
-        /* --- MAIN LAYOUT --- */
         .main-content {
             padding: 20px;
             transition: margin-left 0.3s ease;
@@ -105,7 +109,7 @@
             }
         }
 
-        /* --- CARDS (MATCHING HOME.HTML) --- */
+        /* --- CARDS --- */
         .plugin-card.futuristic {
             position: relative;
             background: var(--card-bg);
@@ -127,7 +131,10 @@
         .plugin-card.futuristic::after {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; height: 1px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
             background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
             transform: translateX(-100%);
             transition: 0.6s;
@@ -137,7 +144,7 @@
             transform: translateX(100%);
         }
 
-        /* --- TYPOGRAPHY & GRADIENTS --- */
+        /* --- TEXT & BUTTONS --- */
         .text-cyan {
             color: var(--primary-glow);
             text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
@@ -150,7 +157,6 @@
             font-weight: 700;
         }
 
-        /* --- BUTTONS (Standard & Variants) --- */
         .btn-glow {
             background: linear-gradient(90deg, #20c997, #4e54c8);
             color: white;
@@ -169,29 +175,28 @@
             filter: brightness(1.1);
         }
 
-        /* Yellow Variant for MCQ */
         .btn-glow-warning {
             background: linear-gradient(90deg, #ffd700, #ff8c00);
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
             color: #000;
         }
+
         .btn-glow-warning:hover {
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
             color: #000;
             filter: brightness(1.1);
         }
 
-        /* Red/Pink Variant for Debugging */
         .btn-glow-danger {
             background: linear-gradient(90deg, #ff0055, #ff4d4d);
             box-shadow: 0 4px 15px rgba(255, 0, 85, 0.2);
         }
+
         .btn-glow-danger:hover {
             box-shadow: 0 6px 20px rgba(255, 0, 85, 0.4);
             filter: brightness(1.1);
         }
 
-        /* --- FORM ELEMENTS (Dark Mode) --- */
         .form-select-dark {
             background: rgba(255, 255, 255, 0.05) !important;
             border: 1px solid var(--card-border) !important;
@@ -199,7 +204,7 @@
             border-radius: 10px;
         }
 
-        /* --- UTILS --- */
+        /* --- UTILS & CHARTS --- */
         .avatar-circle {
             width: 40px;
             height: 40px;
@@ -216,9 +221,17 @@
         }
 
         @keyframes borderFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .chart-container {
@@ -254,11 +267,15 @@
                 </button>
                 <div class="collapse navbar-collapse" id="mobileMenu">
                     <ul class="navbar-nav mt-3">
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-terminal"></i> Problems</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-person"></i> Profile</a></li>
-                        <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i> Leaderboard</a></li>
-                        
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-terminal"></i>
+                                Problems</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-person"></i>
+                                Profile</a></li>
+                        <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-cpu"></i>
+                                Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i>
+                                Leaderboard</a></li>
+
                         <hr class="border-secondary opacity-25">
                         <li class="nav-item d-flex align-items-center gap-3 py-2">
                             <div class="avatar-circle" style="font-size: 0.8rem;">JD</div>
@@ -267,7 +284,8 @@
                                 <div class="text-cyan" style="font-size: 0.7rem;">Rank #001</div>
                             </div>
                         </li>
-                        <li class="nav-item mt-2"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a></li>
+                        <li class="nav-item mt-2"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -282,7 +300,6 @@
                 <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
                 <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
                 <a href="{%url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
-                
             </nav>
 
             <div class="p-4 mt-auto border-top border-white border-opacity-10">
@@ -313,13 +330,19 @@
                                     <div class="p-3 rounded-3" style="background: rgba(255, 193, 7, 0.1);">
                                         <i class="bi bi-lightning-charge fs-2 text-warning"></i>
                                     </div>
-                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">Popular</span>
+                                    <span
+                                        class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">Popular</span>
                                 </div>
                                 <h3 class="font-heading text-white mb-3">MCQ Quiz</h3>
                                 <p class="text-secondary mb-4 flex-grow-1">
-                                    Test your knowledge with multiple choice questions covering theory, algorithms, and system design concepts.
+                                    Test your knowledge with multiple choice questions covering theory, algorithms, and
+                                    system design concepts.
                                 </p>
-                                <a class="btn btn-glow btn-glow-warning w-100 py-3" href="{% url 'insideQuiz' %}">Start Quiz</a>
+
+                                <button class="btn btn-glow btn-glow-warning w-100 py-3" data-bs-toggle="modal"
+                                    data-bs-target="#mcqLanguageModal">
+                                    Start Quiz
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -331,19 +354,23 @@
                                     <div class="p-3 rounded-3" style="background: rgba(255, 0, 85, 0.1);">
                                         <i class="bi bi-bug fs-2 text-danger"></i>
                                     </div>
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">Hard</span>
+                                    <span
+                                        class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">Hard</span>
                                 </div>
                                 <h3 class="font-heading text-white mb-3">Debugging</h3>
                                 <p class="text-secondary mb-4 flex-grow-1">
-                                    Find, fix, and optimize bugs in broken logic blocks and spaghetti code under strict time limits.
+                                    Find, fix, and optimize bugs in broken logic blocks and spaghetti code under strict
+                                    time limits.
                                 </p>
-                                <a class="btn btn-glow btn-glow-danger w-100 py-3" href="{% url 'DebuggingQuiz' %}">Start Debugging</a>
+                                <a class="btn btn-glow btn-glow-danger w-100 py-3"
+                                    href="{% url 'DebuggingQuiz' %}">Start Debugging</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <h4 class="font-heading text-cyan mb-4"><i class="bi bi-bar-chart-steps me-2"></i>Performance Analytics</h4>
+                <h4 class="font-heading text-cyan mb-4"><i class="bi bi-bar-chart-steps me-2"></i>Performance Analytics
+                </h4>
 
                 <div class="plugin-card futuristic">
                     <div class="row g-5">
@@ -376,9 +403,50 @@
         </main>
     </div>
 
+    <!-- ================= LANGUAGE MODAL (FIXED) ================= -->
+    <div class="modal fade" id="mcqLanguageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border border-secondary rounded-4">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-info fw-bold">Select Quiz Language</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <select id="languageSelect" class="form-select form-select-dark" required>
+                        <option value="" disabled selected>-- Choose Language --</option>
+                        {% for lang in languages %}
+                        <option value="{{ lang.id }}">{{ lang.get_name_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-glow w-100" onclick="startQuiz()">
+                        Start Quiz
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+
+        function startQuiz() {
+            const lang = document.getElementById('languageSelect').value;
+
+            if (!lang) {
+                alert('Please select a language');
+                return;
+            }
+
+            window.location.href = `/insideQuiz?lang=${lang}`;
+        }
+
         // Chart Defaults matching the theme
         Chart.defaults.color = '#b0b0cc';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
@@ -447,7 +515,7 @@
                     backgroundColor: [
                         '#4e54c8', // Secondary Color
                         '#ff0055', // Danger Color
-                        '#2d2d44'  // Dark Color
+                        '#2d2d44' // Dark Color
                     ],
                     borderColor: '#050505', // Match background for separation
                     borderWidth: 4,

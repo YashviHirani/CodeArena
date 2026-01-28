@@ -44,8 +44,20 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('CodeArena_app.urls')),  # ✅ ONLY THIS
-]
+    path('login/',views.login,name='login'),
+    path('signup/',views.signup, name='signup'),
+    path('',views.home,name='home'),
+    path("dashboard/",views.dashboard,name='dashboard'),  
+    path('profile/',views.profile,name='profile'),
+    # path('quiz/',views.quiz,name="quiz"),
+    path('insideQuiz',views.inside_quiz,name="insideQuiz"),     
+    path('DebuggingQuiz',views.DebuggingQuiz,name="DebuggingQuiz"),     
+    path("leaderboard",views.leaderboard,name="leaderboard"),
 
+    path('quiz/', views.quiz_home, name='quiz'),
+    path('quiz/start/', views.start_quiz, name='start_quiz'),
+    path('quiz/<int:language_id>/', views.inside_quiz, name='insideQuiz'),
+    path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'),                                                                                    
+]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

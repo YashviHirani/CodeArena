@@ -98,6 +98,18 @@ class Quiz(models.Model):
     class Meta:
         verbose_name_plural = "Quizzes"
 
+class UserMCQAttempt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    selected_option = models.CharField(max_length=1)
+    is_correct = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('user', 'quiz')
+
+
+
 # --- Coding Problems Models ---
 
 class Topic(models.Model):
