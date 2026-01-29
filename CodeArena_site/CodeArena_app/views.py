@@ -330,7 +330,16 @@ def save_mcq_answer(request):
         return JsonResponse({"correct": is_correct})
 
 
-def leaderboard(request):
+def quiz_view(request):
+    return render(request, "quiz.html")
+
+def insideQuiz_view(request):
+    return render(request, "insideQuiz.html")
+
+def DebuggingQuiz_view(request):
+    return render(request, "DebuggingQuiz.html")
+
+def leaderboard_view(request):
     return render(request, "leaderboard.html")
 
 
