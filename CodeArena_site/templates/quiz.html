@@ -362,8 +362,11 @@
                                     Find, fix, and optimize bugs in broken logic blocks and spaghetti code under strict
                                     time limits.
                                 </p>
-                                <a class="btn btn-glow btn-glow-danger w-100 py-3"
-                                    href="{% url 'DebuggingQuiz' %}">Start Debugging</a>
+                                <button class="btn btn-glow btn-glow-danger w-100 py-3" data-bs-toggle="modal"
+                                    data-bs-target="#debugLanguageModal">
+                                    Start Debugging
+                                </button>
+
                             </div>
                         </div>
                     </div>
@@ -431,6 +434,36 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="debugLanguageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border border-secondary rounded-4">
+
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger fw-bold">
+                        Select Debugging Language
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <select id="debugLangSelect" class="form-select form-select-dark">
+                        <option value="" disabled selected>-- Choose Language --</option>
+                        {% for lang in languages %}
+                        <option value="{{ lang.id }}">{{ lang.get_name_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button class="btn btn-glow-danger w-100" onclick="startDebugQuiz()">
+                        Start Debugging
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -539,6 +572,20 @@
             }
         });
     </script>
+    <script>
+        function startDebugQuiz() {
+            const lang = document.getElementById("debugLangSelect").value;
+
+            if (!lang) {
+                alert("Please select a language");
+                return;
+            }
+
+            // ✅ Redirect to debugging quiz
+            window.location.href = `/quiz/debug/?lang=${lang}`;
+        }
+    </script>
+
 </body>
 
 </html>

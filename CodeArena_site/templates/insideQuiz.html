@@ -114,7 +114,7 @@
 
         <!-- ACTION -->
         <div class="d-flex justify-content-between mt-4">
-            <a href="{% url 'quiz' %}" class="btn btn-outline-secondary">Exit</a>
+            <a href="{% url 'quiz_home' %}" class="btn btn-outline-secondary">Exit</a>
             <button class="btn btn-glow" id="actionBtn" disabled>
                 Submit
             </button>
@@ -125,7 +125,14 @@
             <h3 class="fw-bold mb-3">Quiz Completed</h3>
             <h1 class="display-4 fw-bold" id="finalScore"></h1>
             <p class="fs-5" id="finalRemark"></p>
-            <a href="{% url 'quiz' %}" class="btn btn-glow mt-3">Back to Quiz Hub</a>
+            <a href="{% url 'quiz_home' %}" class="btn btn-glow mt-3">Back to Quiz Hub</a>
+            <br>
+            <button class="btn btn-success mt-3" onclick="goToSummary()">
+                View Quiz Summary
+            </button>
+
+
+
         </div>
 
     </div>
@@ -136,6 +143,11 @@
     </script>
 
     <script>
+        // Store current quiz IDs (ONLY this quiz run)
+        const currentQuizIds = questions.map(q => q.quiz_id);
+        sessionStorage.setItem("current_quiz_ids", JSON.stringify(currentQuizIds));
+
+
         let index = 0;
         let score = 0;
         let selected = null;
@@ -246,6 +258,11 @@
 
             return await response.json();
         }
+        function goToSummary() {
+            const ids = sessionStorage.getItem("current_quiz_ids");
+            window.location.href = `/quiz/summary/?ids=${ids}`;
+        }
+
 
     </script>
 
