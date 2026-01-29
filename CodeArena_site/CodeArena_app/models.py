@@ -43,6 +43,8 @@ class UserProfile(models.Model):
 
     def get_skills_list(self):
         return [skill.strip() for skill in self.skills.split(',')] if self.skills else []
+    
+    total_submissions = models.IntegerField(default=0)
 
 # --- Learning Content Models ---
 
@@ -180,3 +182,12 @@ class Problem(models.Model):
 
     def __str__(self):
         return self.title
+    
+class DailySubmission(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ("user", "date")
+
