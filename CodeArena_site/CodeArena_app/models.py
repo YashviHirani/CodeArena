@@ -142,10 +142,14 @@ class UserMCQAttempt(models.Model):
     selected_option = models.CharField(max_length=1)
     is_correct = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
+
+    attempts = models.PositiveIntegerField(default=0)  # this one is NEW guys
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'quiz')
+
+
 
 
 
@@ -191,3 +195,14 @@ class DailySubmission(models.Model):
     class Meta:
         unique_together = ("user", "date")
 
+
+
+
+class ProblemSubmission(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    is_correct = models.BooleanField(default=False)
+    solved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "problem")
