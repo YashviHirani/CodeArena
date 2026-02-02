@@ -73,30 +73,81 @@ class MCQ(models.Model):
         ('C', 'Option C'),
         ('D', 'Option D'),
     ]
-    
+
     question_text = models.TextField()
+
+    # For Debugging Questions (optional)
+    code_snippet = models.TextField(blank=True, null=True)
+
     option_a = models.CharField(max_length=255)
     option_b = models.CharField(max_length=255)
     option_c = models.CharField(max_length=255)
     option_d = models.CharField(max_length=255)
-    correct_option = models.CharField(max_length=1, choices=OPTION_CHOICES)
+
+    correct_option = models.CharField(
+        max_length=1,
+        choices=OPTION_CHOICES
+    )
+
+    explanation = models.TextField(blank=True)
+
+    def is_debugging(self):
+        return bool(self.code_snippet)
 
     def __str__(self):
         return self.question_text[:50]
 
 class Quiz(models.Model):
-    DIFFICULTY_CHOICES = [
-        ("H", "Hard"),
-        ("M", "Medium"),
-        ("E", "Easy")
+    QUIZ_TYPE_CHOICES = [
+        ("MCQ", "Simple MCQ"),
+        ("DEBUG", "Debugging MCQ"),
     ]
-    
-    language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name='quizzes')
-    question = models.ForeignKey(MCQ, on_delete=models.CASCADE, related_name='in_quizzes')
-    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
+
+    DIFFICULTY_CHOICES = [
+        ("E", "Easy"),
+        ("M", "Medium"),
+        ("H", "Hard"),
+    ]
+
+    language = models.ForeignKey(
+        Language,
+        on_delete=models.CASCADE,
+        related_name="quizzes"
+    )
+
+    question = models.ForeignKey(
+        "MCQ",
+        on_delete=models.CASCADE,
+        related_name="quizzes"
+    )
+
+    quiz_type = models.CharField(
+        max_length=10,
+        choices=QUIZ_TYPE_CHOICES,
+        default="MCQ"
+    )
+
+    difficulty = models.CharField(
+        max_length=10,
+        choices=DIFFICULTY_CHOICES
+    )
+
+    def __str__(self):
+        return f"{self.get_quiz_type_display()} | {self.question.question_text[:40]}"
+
+class UserMCQAttempt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+
+    selected_option = models.CharField(max_length=1)
+    is_correct = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name_plural = "Quizzes"
+        unique_together = ('user', 'quiz')
+
+
 
 # --- Coding Problems Models ---
 
