@@ -62,28 +62,6 @@ def login_view(request):
 
 # ---------------- SIGNUP ----------------
 
-# def signup_view(request):
-#     if request.method == "POST":
-#         username = request.POST["username"]
-#         email = request.POST["email"]
-#         password = request.POST["password"]
-
-#         # 1️⃣ Create User (password encrypted automatically)
-#         user = User.objects.create_user(
-#             username=username,
-#             email=email,
-#             password=password
-#         )
-
-#         # 2️⃣ Profile created via signal (below)
-
-#         # 3️⃣ Log user in
-#         login(request, user)
-
-#         return redirect("dashboard")
-
-#     return render(request, "signup.html")
-
 from django.contrib import messages
 
 def signup_view(request):
@@ -238,18 +216,6 @@ def profile_view(request):
 
 # ---------------- QUIZ ----------------
 
-def quiz_view(request):
-    return render(request, "quiz.html")
-
-def insideQuiz_view(request):
-    return render(request, "insideQuiz.html")
-
-def DebuggingQuiz_view(request):
-    return render(request, "DebuggingQuiz.html")
-
-# def leaderboard_view(request):
-#     return render(request, "leaderboard.html")
-
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 
@@ -334,26 +300,7 @@ def update_skills(request):
 
         return JsonResponse({"status": "ok"})
 
-# --------------------- For total and daily submissions of user -------------------------
-from django.utils.timezone import now
-from .models import DailySubmission
 
-@login_required
-def submit_solution(request, problem_id):
-    profile = request.user.profile
-
-    # 1️⃣ total submissions
-    profile.total_submissions += 1
-    profile.save()
-
-    # 2️⃣ daily submission
-    today = now().date()
-    daily, created = DailySubmission.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
-    daily.count += 1
-    daily.save()
 
 # ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
 from .models import Problem
@@ -370,27 +317,6 @@ def problem_detail_view(request, problem_id):
 
 from django.utils.timezone import now
 from .models import DailySubmission
-
-# @login_required
-# def submit_solution(request, problem_id):
-#     if request.method == "POST":
-#         profile = request.user.profile
-
-#         # 1️⃣ Total submissions
-#         profile.total_submissions += 1
-#         profile.save()
-
-#         # 2️⃣ Daily submissions
-#         today = now().date()
-#         daily, created = DailySubmission.objects.get_or_create(
-#             user=request.user,
-#             date=today
-#         )
-#         daily.count += 1
-#         daily.save()
-
-#         return JsonResponse({"status": "accepted"})
-
 from django.db import IntegrityError
 from .models import ProblemSubmission
 
@@ -458,115 +384,58 @@ import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 from django.views.decorators.csrf import csrf_exempt
 
-def quiz_home(request):
-    languages = Language.objects.all()
-    return render(request, 'quiz.html', {'languages': languages})
 
 
-# @login_required
-def inside_quiz(request):
-    language_id = request.GET.get('lang')
-    if not language_id:
-        return HttpResponse("Language not provided", status=400)
+# # @login_required
+# def inside_quiz(request):
+#     language_id = request.GET.get('lang')
+#     if not language_id:
+#         return HttpResponse("Language not provided", status=400)
 
-    language = get_object_or_404(Language, id=language_id)
+#     language = get_object_or_404(Language, id=language_id)
 
-    # ✅ quizzes already solved correctly by the user
-    solved_quiz_ids = UserMCQAttempt.objects.filter(
-        user_id=request.user.id,
-        is_correct=True
-    ).values_list('quiz_id', flat=True)
+#     # ✅ quizzes already solved correctly by the user
+#     solved_quiz_ids = UserMCQAttempt.objects.filter(
+#         user_id=request.user.id,
+#         is_correct=True
+#     ).values_list('quiz_id', flat=True)
 
-    # ✅ fetch quizzes for this language, excluding solved ones
-    quizzes = (
-        Quiz.objects
-        .select_related('question')
-        .filter(language=language)
-        .exclude(id__in=solved_quiz_ids)
-        .order_by('?')[:10]
-    )
+#     # ✅ fetch quizzes for this language, excluding solved ones
+#     quizzes = (
+#         Quiz.objects
+#         .select_related('question')
+#         .filter(language=language)
+#         .exclude(id__in=solved_quiz_ids)
+#         .order_by('?')[:10]
+#     )
 
-    if not quizzes.exists():
-        return HttpResponse("You have completed all questions 🎉")
+#     if not quizzes.exists():
+#         return HttpResponse("You have completed all questions 🎉")
 
-    quiz_data = [
-        {
-            "quiz_id": quiz.id,
-            "question": quiz.question.question_text,
-            "options": [
-                quiz.question.option_a,
-                quiz.question.option_b,
-                quiz.question.option_c,
-                quiz.question.option_d,
-            ]
-        }
-        for quiz in quizzes
-    ]
+#     quiz_data = [
+#         {
+#             "quiz_id": quiz.id,
+#             "question": quiz.question.question_text,
+#             "options": [
+#                 quiz.question.option_a,
+#                 quiz.question.option_b,
+#                 quiz.question.option_c,
+#                 quiz.question.option_d,
+#             ]
+#         }
+#         for quiz in quizzes
+#     ]
 
-    return render(request, 'insideQuiz.html', {
-        "language": language,
-        "quiz_data": json.dumps(quiz_data)
-    })
+#     return render(request, 'insideQuiz.html', {
+#         "language": language,
+#         "quiz_data": json.dumps(quiz_data)
+#     })
 
-    return render(request, 'inside_quiz.html', context)
+#     return render(request, 'inside_quiz.html', context)
 def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
-
-
-# @login_required
-@csrf_exempt
-def save_mcq_answer(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        quiz_id = data.get("quiz_id")
-        selected_option = data.get("selected_option")
-
-        quiz = get_object_or_404(Quiz, id=quiz_id)
-        is_correct = selected_option == quiz.question.correct_option
-
-        UserMCQAttempt.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={
-                "selected_option": selected_option,
-                "is_correct": is_correct,
-                "completed": is_correct
-            }
-        )
-
-        return JsonResponse({"correct": is_correct})
-
-
-# def leaderboard(request):
-#     return render(request, "leaderboard.html")
-# @login_required
-# def leaderboard_view(request):
-#     profiles = (
-#         UserProfile.objects
-#         .filter(points__gt=0)
-#         .select_related("user")
-#         .order_by("-points", "user__username")
-#     )
-
-#     # Assign ranks
-#     ranked_profiles = []
-#     last_points = None
-#     rank = 0
-
-#     for index, profile in enumerate(profiles, start=1):
-#         if profile.points != last_points:
-#             rank = index
-#             last_points = profile.points
-#         profile.rank = rank
-#         ranked_profiles.append(profile)
-
-#     return render(request, "leaderboard.html", {
-#         "profiles": ranked_profiles
-#     })
-
 
 
 def get_quiz_questions(user, language, limit=10):
@@ -716,37 +585,7 @@ def start_quiz(request):
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 
-# @csrf_exempt
-# def save_mcq_answer(request):
-#     if not request.user.is_authenticated:
-#         return JsonResponse(
-#             {"error": "Login required to save progress"},
-#             status=401
-#         )
 
-#     data = json.loads(request.body)
-
-#     quiz = get_object_or_404(Quiz, id=data["quiz_id"])
-#     selected = data["selected_option"]
-#     is_correct = selected == quiz.question.correct_option
-
-#     attempt, _ = UserMCQAttempt.objects.get_or_create(
-#         user=request.user,
-#         quiz=quiz,
-#         defaults={
-#             "selected_option": selected,
-#             "is_correct": is_correct,
-#             "completed": is_correct
-#         }
-#     )
-
-#     if not attempt.is_correct:
-#         attempt.selected_option = selected
-#         attempt.is_correct = is_correct
-#         attempt.completed = is_correct
-#         attempt.save()
-
-#     return JsonResponse({"correct": is_correct})
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -827,48 +666,7 @@ def debugging_quiz(request):
     })
 
 
-# from django.contrib.auth.decorators import login_required
 
-# @login_required
-# def quiz_summary(request):
-#     ids = request.GET.get("ids")
-
-#     if not ids:
-#         return HttpResponse("No quiz session found", status=400)
-
-#     quiz_ids = json.loads(ids)
-
-#     attempts = (
-#         UserMCQAttempt.objects
-#         .filter(
-#             user=request.user,
-#             quiz_id__in=quiz_ids   # 🔥 ONLY CURRENT QUIZ
-#         )
-#         .select_related("quiz__question")
-#         .order_by("attempted_at")
-#     )
-
-#     summary = []
-
-#     for att in attempts:
-#         q = att.quiz.question
-#         summary.append({
-#             "question": q.question_text,
-#             "options": {
-#                 "A": q.option_a,
-#                 "B": q.option_b,
-#                 "C": q.option_c,
-#                 "D": q.option_d,
-#             },
-#             "correct": q.correct_option,
-#             "selected": att.selected_option,
-#             "is_correct": att.is_correct,
-#             "explanation": q.explanation,
-#         })
-
-#     return render(request, "quiz_summary.html", {
-#         "summary": summary
-#     })
 
 from django.contrib.auth.decorators import login_required
 
@@ -960,8 +758,6 @@ def get_quizzes(user, language, quiz_type, limit=10):
 
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
-
-
 
 
 
