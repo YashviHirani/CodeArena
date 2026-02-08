@@ -7,13 +7,17 @@ from django.conf import settings
 class User(AbstractUser):
     # AbstractUser already contains username, email, password, etc.
     # Keep this empty unless adding platform-wide auth fields.
-    pass
+    class Meta:
+        indexes = [
+            models.Index(fields=["username"]),
+        ]
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
-        related_name='profile'
+        related_name='profile',
+        unique=True
     )
     profile_img = models.ImageField(upload_to='media/', default='default.png', blank=True)
     full_name = models.CharField(max_length=100, blank=True)

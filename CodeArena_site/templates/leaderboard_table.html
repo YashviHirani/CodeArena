@@ -1,0 +1,50 @@
+{% for profile in profiles %}
+<tr>
+    <td class="ps-4 fw-bold
+        {% if profile.rank == 1 %}rank-gold
+        {% elif profile.rank == 2 %}rank-silver
+        {% elif profile.rank == 3 %}rank-bronze
+        {% endif %}">
+        #{{ profile.rank }}
+    </td>
+
+    <td>
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar-circle" style="width:32px; height:32px; font-size:0.7rem;">
+                {% if profile.profile_img and profile.profile_img.name != "default.png" %}
+                <img src="{{ profile.profile_img.url }}"
+                    style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                {% else %}
+                <div class="avatar-circle" style="width:32px; height:32px; font-size:0.7rem;">
+                    {{ profile.user.username|slice:":2"|upper }}
+                </div>
+                {% endif %}
+
+            </div>
+            <span class="text-white fw-bold">
+                {{ profile.user.username }}
+            </span>
+        </div>
+    </td>
+
+    <td>
+        <span class="badge bg-white bg-opacity-10 text-cyan border border-cyan border-opacity-25">
+            Active
+        </span>
+    </td>
+
+    <td class="text-secondary">
+        {{ profile.easy_solved|add:profile.medium_solved|add:profile.hard_solved }}
+    </td>
+
+    <td class="text-end pe-4 fw-bold text-white">
+        {{ profile.points }}
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center text-secondary py-4">
+        No leaderboard data yet.
+    </td>
+</tr>
+{% endfor %}

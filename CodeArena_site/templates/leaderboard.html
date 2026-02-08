@@ -373,7 +373,10 @@
                 class="p-4 border-bottom border-white border-opacity-10 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold font-orbitron text-white">Global Standings</h5>
                 <div style="width: 250px;">
-                    <input class="form-control-dark w-100" placeholder="Find coder...">
+                    <form method="GET">
+                        <input id="searchInput" class="form-control-dark w-100" placeholder="Find coder...">
+                    </form>
+
                 </div>
             </div>
 
@@ -388,63 +391,9 @@
                             <th class="text-end pe-4">Score</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for profile in profiles %}
-                        <tr>
-                            <!-- Rank -->
-                            <td class="ps-4 fw-bold
-        {% if profile.rank == 1 %}rank-gold
-        {% elif profile.rank == 2 %}rank-silver
-        {% elif profile.rank == 3 %}rank-bronze
-        {% endif %}
-    ">
-                                #{{ profile.rank }}
-                            </td>
 
-                            <!-- User -->
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    {% if profile.profile_img and profile.profile_img.name != "default.png" %}
-                                    <img src="{{ profile.profile_img.url }}"
-                                        style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-                                    {% else %}
-                                    <div class="avatar-circle" style="width:32px; height:32px; font-size:0.7rem;">
-                                        {{ profile.user.username|slice:":2"|upper }}
-                                    </div>
-                                    {% endif %}
-
-
-                                    <span class="text-white fw-bold">
-                                        {{ profile.user.username }}
-                                    </span>
-                                </div>
-                            </td>
-
-                            <!-- Status -->
-                            <td>
-                                <span
-                                    class="badge bg-white bg-opacity-10 text-cyan border border-cyan border-opacity-25">
-                                    Active
-                                </span>
-                            </td>
-
-                            <!-- Solved -->
-                            <td class="text-secondary">
-                                {{ profile.easy_solved|add:profile.medium_solved|add:profile.hard_solved }}
-                            </td>
-
-                            <!-- Score -->
-                            <td class="text-end pe-4 fw-bold text-white">
-                                {{ profile.points }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-secondary py-4">
-                                No leaderboard data yet.
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="leaderboard-body">
+                        {% include "leaderboard_table.html" %}
                     </tbody>
 
                 </table>
@@ -456,6 +405,33 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const leaderboardBody = document.getElementById("leaderboard-body");
+
+        let timeout = null;
+
+        searchInput.addEventListener("keyup", function () {
+
+            clearTimeout(timeout);
+
+            timeout = setTimeout(() => {
+
+                fetch(`/leaderboard/?q=${this.value}`, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        leaderboardBody.innerHTML = data.table_html;
+                    });
+
+            }, 300);
+
+        });
+    </script>
+
 </body>
 
 </html>

@@ -219,32 +219,95 @@ def profile_view(request):
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 
+# @login_required
+# def leaderboard_view(request):
+#     profiles = (
+#         UserProfile.objects
+#         .filter(points__gt=0)
+#         .select_related("user")
+#         .order_by("-points", "user__username")
+#     )
+
+#     ranked_profiles = []
+#     last_points = None
+#     rank = 0
+
+#     for index, profile in enumerate(profiles, start=1):
+#         if profile.points != last_points:
+#             rank = index
+#             last_points = profile.points
+#         profile.rank = rank
+#         ranked_profiles.append(profile)
+
+#     # 🔥 TOP 3 USERS
+#     top_users = ranked_profiles[:3]
+
+#     return render(request, "leaderboard.html", {
+#         "profiles": ranked_profiles,
+#         "top_users": top_users
+#     })
+
+
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+from django.db.models import Q
+
 @login_required
 def leaderboard_view(request):
-    profiles = (
+    query = request.GET.get("q", "").strip()
+
+    # =========================
+    # 🔥 GLOBAL RANKING (Cards)
+    # =========================
+    global_profiles = (
         UserProfile.objects
         .filter(points__gt=0)
         .select_related("user")
         .order_by("-points", "user__username")
     )
 
-    ranked_profiles = []
+    ranked_global = []
     last_points = None
     rank = 0
 
-    for index, profile in enumerate(profiles, start=1):
+    for index, profile in enumerate(global_profiles, start=1):
         if profile.points != last_points:
             rank = index
             last_points = profile.points
         profile.rank = rank
-        ranked_profiles.append(profile)
+        ranked_global.append(profile)
 
-    # 🔥 TOP 3 USERS
-    top_users = ranked_profiles[:3]
+    top_users = ranked_global[:3]  # 🔥 Always global top 3
+
+
+    # =========================
+    # 🔍 FILTERED TABLE SEARCH
+    # =========================
+    filtered_profiles = ranked_global
+
+    if query:
+        filtered_profiles = [
+            p for p in ranked_global
+            if query.lower() in p.user.username.lower()
+        ]
+
+    # =========================
+    # AJAX RESPONSE (TABLE ONLY)
+    # =========================
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        table_html = render_to_string(
+            "leaderboard_table.html",
+            {"profiles": filtered_profiles},
+            request=request
+        )
+
+        return JsonResponse({
+            "table_html": table_html
+        })
 
     return render(request, "leaderboard.html", {
-        "profiles": ranked_profiles,
-        "top_users": top_users
+        "profiles": ranked_global,   # full table initially
+        "top_users": top_users       # always global
     })
 
 
