@@ -191,3 +191,29 @@ class DailySubmission(models.Model):
     class Meta:
         unique_together = ("user", "date")
 
+
+class ExampleTestCase(models.Model):
+    problem = models.OneToOneField(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="example"
+    )
+    input_data = models.TextField()
+    output_data = models.TextField()
+    explanation = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Example for {self.problem.title}"
+
+class TestCase(models.Model):
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="testcases"
+    )
+    input_data = models.TextField()
+    expected_output = models.TextField()
+    is_sample = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Testcase for {self.problem.title}"

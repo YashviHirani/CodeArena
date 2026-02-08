@@ -645,3 +645,63 @@ def get_quizzes(user, language, quiz_type, limit=10):
 
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
+
+def problem_detail(request, problem_id):
+    problem = Problem.objects.get(id=problem_id)
+
+    example = problem.example              # OneToOne
+    testcases = problem.testcases.all()    # ForeignKey
+
+    context = {
+        "problem": problem,
+        "example": example,
+        "testcases": testcases,
+    }
+    return render(request, "problemPage.html", context)
+
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@require_POST
+def update_skills(request):
+    profile = request.user.profile
+    skill = request.POST.get("skill", "").strip()
+    action = request.POST.get("action")
+
+    if not skill:
+        return JsonResponse({"error": "Skill cannot be empty"}, status=400)
+
+    # Normalize (case-insensitive handling)
+    skill_normalized = skill.lower()
+
+    # Convert existing skills to normalized list
+    skills_list = [
+        s.strip().lower()
+        for s in profile.skills.split(",")
+        if s.strip()
+    ]
+
+    if action == "add":
+        if skill_normalized in skills_list:
+            return JsonResponse(
+                {"error": "Skill already exists"},
+                status=409
+            )
+
+        skills_list.append(skill_normalized)
+
+    elif action == "remove":
+        if skill_normalized in skills_list:
+            skills_list.remove(skill_normalized)
+
+    else:
+        return JsonResponse({"error": "Invalid action"}, status=400)
+
+    # Save back to DB (keep comma-separated format)
+    profile.skills = ", ".join(skills_list)
+    profile.save(update_fields=["skills"])
+
+    return JsonResponse({"success": True})

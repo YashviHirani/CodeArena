@@ -357,6 +357,11 @@
 </head>
 <body>
 
+    <form style="display:none;">
+        {% csrf_token %}
+    </form>
+
+
 <div class="bg-radial">
     
     <nav class="navbar navbar-expand-lg d-lg-none navbar-dark">
@@ -416,7 +421,7 @@
             <div class="plugin-card" style="padding: 2.5rem;">
                 <div class="user-content d-flex align-items-center flex-wrap position-relative">
                     
-                    <img src="{{profile.profile_img.url}}" class="profile-img me-md-5" alt="Profile Picture">
+                    <img src="{% if profile.profile_img %}{{ profile.profile_img.url }}{% else %}{% static 'default.jpg' %}{% endif %}" class="profile-img me-md-5" alt="Profile Picture">
                     
                     <div class="py-2">
                         <button class="rank-pulse">🏆 Rank #{{profile.rank}}</button>
@@ -676,45 +681,57 @@
     });
 
     function addNewSkill() {
-    const input = document.getElementById('newSkillInput');
-    const container = document.getElementById('skillsContainer');
-    const addButton = document.querySelector('.btn-add-skill');
+        const input = document.getElementById('newSkillInput');
+        const container = document.getElementById('skillsContainer');
+        const addButton = document.querySelector('.btn-add-skill');
 
-    const skillName = input.value.trim();
-    if (!skillName) {
-        alert("Please enter a skill name!");
-        return;
+        const skillName = input.value.trim();
+        if (!skillName) {
+            alert("Please enter a skill name!");
+            return;
+        }
+
+        fetch("/update-skills/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            credentials: "same-origin",
+            body: new URLSearchParams({
+                skill: skillName,
+                action: "add"
+            })
+        })
+
+        .then(res => {
+            if (res.status === 409) {
+                throw new Error("Skill already exists");
+            }
+            if (!res.ok) {
+                throw new Error("Failed to add skill");
+            }
+            return res.json();
+        })
+        .then(() => {
+            // ---- FRONTEND UPDATE (ONLY AFTER SUCCESS) ----
+            const newSkill = document.createElement('div');
+            newSkill.className = 'skill-tag';
+            newSkill.innerText = skillName;
+            container.insertBefore(newSkill, addButton);
+
+            input.value = "";
+
+            bootstrap.Modal.getInstance(
+                document.getElementById('skillModal')
+            ).hide();
+        })
+        .catch(err => {
+            alert(err.message);
+        });
     }
 
-    // ---- FRONTEND UPDATE (instant UX) ----
-    const newSkill = document.createElement('div');
-    newSkill.className = 'skill-tag';
-    newSkill.innerText = skillName;
-    container.insertBefore(newSkill, addButton);
 
-    input.value = "";
-
-    // ---- BACKEND SYNC ----
-    fetch("/update-skills/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": csrftoken,
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-            skill: skillName,
-            action: "add"
-        })
-    });
-
-    // Close modal safely
-    const modal = bootstrap.Modal.getOrCreateInstance(
-        document.getElementById('skillModal')
-    );
-    modal.hide();
-}
-
-    
     // Allow pressing 'Enter' in the Add Skill box
     document.getElementById('newSkillInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
@@ -742,36 +759,40 @@
         }
     });
 
-function deleteSkill() {
-    if (!currentSkillElement) return;
+    function deleteSkill() {
+        if (!currentSkillElement) return;
 
-    const skillName = currentSkillElement.innerText;
+        const skillName = currentSkillElement.innerText;
 
-    // ---- FRONTEND EFFECT ----
-    currentSkillElement.style.transform = "scale(0)";
-    setTimeout(() => {
-        currentSkillElement.remove();
-    }, 300);
-
-    // ---- BACKEND SYNC ----
-    fetch("/update-skills/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": csrftoken,
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-            skill: skillName,
-            action: "remove"
+        fetch("/update-skills/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrftoken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            credentials: "same-origin",
+            body: new URLSearchParams({
+                skill: skillName,
+                action: "remove"
+            })
         })
-    });
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Failed to delete skill");
+            }
 
-    // Close modal
-    const modal = bootstrap.Modal.getOrCreateInstance(
-        document.getElementById('manageSkillModal')
-    );
-    modal.hide();
-}
+            // ---- FRONTEND EFFECT ----
+            currentSkillElement.style.transform = "scale(0)";
+            setTimeout(() => currentSkillElement.remove(), 300);
+
+            bootstrap.Modal.getInstance(
+                document.getElementById('manageSkillModal')
+            ).hide();
+        })
+        .catch(err => {
+            alert(err.message);
+        });
+    }
 
 </script>
 </body>

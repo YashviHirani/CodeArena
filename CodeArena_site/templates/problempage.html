@@ -303,31 +303,42 @@
                 </div>
 
                 <div class="plugin-card futuristic">
-                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-info-circle me-2"></i> {{ problem.description }}</h5>
+                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-info-circle me-2"></i> Example Testcase </h5>
                     <p class="fs-5 text-light opacity-75" style="line-height: 1.6;">
-                        Given a string <code class="text-info bg-dark px-2 rounded">s</code>, return the <strong>longest palindromic substring</strong> in <code class="text-info bg-dark px-2 rounded">s</code>.
+                        {{ problem.description }}
                     </p>
                     <div class="mt-4">
                         <p class="small text-secondary mb-2 text-uppercase fw-bold">Example Case</p>
-                        <div class="example-box">
-                            <span class="text-white">Input:</span> "babad"<br>
-                            <span class="text-white">Output:</span> "bab"<br>
-                            <span class="text-secondary small">// Note: "aba" is also a valid answer.</span>
+                       <div class="example-box">
+                            <span class="text-white">Input:</span> {{ example.input_data }}<br>
+                            <span class="text-white">Output:</span> {{ example.output_data }}<br>
+                            {% if example.explanation %}
+                                <span class="text-secondary small">// {{ example.explanation }}</span>
+                            {% endif %}
                         </div>
+
                     </div>
                 </div>
 
                 <div class="plugin-card futuristic">
                     <h5 class="font-heading text-cyan mb-4"><i class="bi bi-terminal me-2"></i> Test Cases</h5>
                     <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small">Input</label>
-                            <textarea class="form-control form-control-dark" rows="2" readonly>"babad"</textarea>
+                        {% for tc in testcases %}
+                        <div class="row g-4 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">Input</label>
+                                <textarea class="form-control form-control-dark" rows="2" readonly>
+                        {{ tc.input_data }}
+                                </textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small">Expected Output</label>
+                                <textarea class="form-control form-control-dark" rows="2" readonly>
+                        {{ tc.expected_output }}
+                                </textarea>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small">Expected Output</label>
-                            <textarea class="form-control form-control-dark" rows="2" readonly>"bab"</textarea>
-                        </div>
+                        {% endfor %}
                     </div>
                     <div class="d-flex align-items-center mt-4 gap-3">
                         <button class="btn btn-glow" onclick="runSim()">
