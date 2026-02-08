@@ -283,9 +283,15 @@
                     <div class="rank-silver fs-2 mb-2">
                         <i class="bi bi-award-fill"></i>
                     </div>
+                    {% if top_users.1.profile_img and top_users.1.profile_img.name != "default.png" %}
+                    <img src="{{ top_users.1.profile_img.url }}"
+                        style="width:60px;height:60px;border-radius:50%;object-fit:cover;" class="mx-auto mb-3">
+                    {% else %}
                     <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">
                         {{ top_users.1.user.username|slice:":2"|upper }}
                     </div>
+                    {% endif %}
+
                     <h5 class="fw-bold font-orbitron mb-1 text-white">
                         {{ top_users.1.user.username }}
                     </h5>
@@ -306,10 +312,17 @@
                         <i class="bi bi-trophy-fill"></i>
                     </div>
 
+                    {% if top_users.0.profile_img and top_users.0.profile_img.name != "default.png" %}
+                    <img src="{{ top_users.0.profile_img.url }}"
+                        style="width:75px;height:75px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);"
+                        class="mx-auto mb-3">
+                    {% else %}
                     <div class="avatar-circle mx-auto mb-3"
                         style="width: 75px; height: 75px; font-size: 1.5rem; border: 2px solid var(--gold);">
                         {{ top_users.0.user.username|slice:":2"|upper }}
                     </div>
+                    {% endif %}
+
 
                     <h4 class="fw-bold font-orbitron mb-1 text-white">
                         {{ top_users.0.user.username }}
@@ -331,9 +344,16 @@
                     <div class="rank-bronze fs-2 mb-2">
                         <i class="bi bi-award-fill"></i>
                     </div>
+                    {% if top_users.2.profile_img and top_users.2.profile_img.name != "default.png" %}
+                    <img src="{{ top_users.2.profile_img.url }}"
+                        style="width:60px;height:60px;border-radius:50%;object-fit:cover;" class="mx-auto mb-3">
+                    {% else %}
                     <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">
                         {{ top_users.2.user.username|slice:":2"|upper }}
                     </div>
+                    {% endif %}
+
+
                     <h5 class="fw-bold font-orbitron mb-1 text-white">
                         {{ top_users.2.user.username }}
                     </h5>
@@ -384,9 +404,16 @@
                             <!-- User -->
                             <td>
                                 <div class="d-flex align-items-center gap-3">
+                                    {% if profile.profile_img and profile.profile_img.name != "default.png" %}
+                                    <img src="{{ profile.profile_img.url }}"
+                                        style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+                                    {% else %}
                                     <div class="avatar-circle" style="width:32px; height:32px; font-size:0.7rem;">
                                         {{ profile.user.username|slice:":2"|upper }}
                                     </div>
+                                    {% endif %}
+
+
                                     <span class="text-white fw-bold">
                                         {{ profile.user.username }}
                                     </span>
