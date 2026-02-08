@@ -172,7 +172,6 @@ from .models import UserProfile
 
 @login_required
 def leaderboard_view(request):
-    # 🔥 Only active users (who have points)
     profiles = (
         UserProfile.objects
         .filter(points__gt=0)
@@ -180,7 +179,6 @@ def leaderboard_view(request):
         .order_by("-points", "user__username")
     )
 
-    # 🏆 Rank calculation (handles ties correctly)
     ranked_profiles = []
     last_points = None
     rank = 0
@@ -192,8 +190,12 @@ def leaderboard_view(request):
         profile.rank = rank
         ranked_profiles.append(profile)
 
+    # 🔥 TOP 3 USERS
+    top_users = ranked_profiles[:3]
+
     return render(request, "leaderboard.html", {
-        "profiles": ranked_profiles
+        "profiles": ranked_profiles,
+        "top_users": top_users
     })
 
 
@@ -516,11 +518,52 @@ def quiz(request):
     return render(request, "quiz.html")
 
 
+from django.db.models import Q
+from datetime import datetime, timedelta
+import json
+
 def quiz_home(request):
-    languages = Language.objects.all()
-    return render(request, 'quiz.html', {
-        'languages': languages
-    })
+    user = request.user
+
+    # ================= DAILY POINTS (Last 7 Days) =================
+    today = datetime.today().date()
+    last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+    mcq_labels = []
+    mcq_points = []
+
+    for day in last_7_days:
+        mcq_labels.append(day.strftime("%a"))
+
+        daily_points = UserMCQAttempt.objects.filter(
+            user=user,
+            is_correct=True,
+            attempted_at__date=day
+        ).count() * 5  # or your logic for daily points
+
+        mcq_points.append(daily_points)
+
+    # ================= DEBUGGING ATTEMPT BREAKDOWN =================
+    attempts = UserMCQAttempt.objects.filter(user=user)
+
+    first_correct = attempts.filter(is_correct=True, attempts=1).count()
+    second_correct = attempts.filter(is_correct=True, attempts=2).count()
+    third_plus_correct = attempts.filter(is_correct=True, attempts__gte=3).count()
+
+    wrong_attempts = attempts.filter(is_correct=False).count()
+
+    context = {
+        "mcq_labels": json.dumps(mcq_labels),
+        "mcq_points": json.dumps(mcq_points),
+        "first_correct": first_correct,
+        "second_correct": second_correct,
+        "third_plus_correct": third_plus_correct,
+        "wrong_attempts": wrong_attempts,
+        "languages": Language.objects.all(),
+    }
+
+    return render(request, "quiz.html", context)
+
 
 
 def inside_quiz(request):

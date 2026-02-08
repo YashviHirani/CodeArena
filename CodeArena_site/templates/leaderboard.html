@@ -273,37 +273,80 @@
             <p class="text-secondary mb-0">The elite coders dominating the CodeArena leaderboard.</p>
         </div>
 
-        <div class="row g-4 mb-5">
+        {% if top_users %}
+        <div class="row g-4 mb-5 justify-content-center">
+
+            {% if top_users|length >= 2 %}
+            <!-- Rank 2 -->
             <div class="col-md-4 order-md-1">
                 <div class="plugin-card futuristic text-center">
-                    <div class="rank-silver fs-2 mb-2"><i class="bi bi-award-fill"></i></div>
-                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">SE</div>
-                    <h5 class="fw-bold font-orbitron mb-1 text-white">SyntaxError</h5>
-                    <p class="text-secondary small">Expert Developer</p>
-                    <div class="mt-2 text-cyan fw-bold">14,250 PTS</div>
+                    <div class="rank-silver fs-2 mb-2">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">
+                        {{ top_users.1.user.username|slice:":2"|upper }}
+                    </div>
+                    <h5 class="fw-bold font-orbitron mb-1 text-white">
+                        {{ top_users.1.user.username }}
+                    </h5>
+                    <div class="mt-2 text-cyan fw-bold">
+                        {{ top_users.1.points }} PTS
+                    </div>
                 </div>
             </div>
+            {% endif %}
+
+            {% if top_users|length >= 1 %}
+            <!-- Rank 1 -->
             <div class="col-md-4 order-md-2">
                 <div class="plugin-card futuristic text-center border-primary border-opacity-25"
                     style="background: rgba(32, 201, 151, 0.05);">
-                    <div class="rank-gold fs-1 mb-2"><i class="bi bi-trophy-fill"></i></div>
+
+                    <div class="rank-gold fs-1 mb-2">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+
                     <div class="avatar-circle mx-auto mb-3"
-                        style="width: 75px; height: 75px; font-size: 1.5rem; border: 2px solid var(--gold);">BB</div>
-                    <h4 class="fw-bold font-orbitron mb-1 text-white">BinaryBeast</h4>
-                    <p class="text-cyan small">Arena Master</p>
-                    <div class="mt-2 text-cyan fw-bold fs-5">15,800 PTS</div>
+                        style="width: 75px; height: 75px; font-size: 1.5rem; border: 2px solid var(--gold);">
+                        {{ top_users.0.user.username|slice:":2"|upper }}
+                    </div>
+
+                    <h4 class="fw-bold font-orbitron mb-1 text-white">
+                        {{ top_users.0.user.username }}
+                    </h4>
+
+                    <p class="text-cyan small">Rank #1</p>
+
+                    <div class="mt-2 text-cyan fw-bold fs-5">
+                        {{ top_users.0.points }} PTS
+                    </div>
                 </div>
             </div>
+            {% endif %}
+
+            {% if top_users|length >= 3 %}
+            <!-- Rank 3 -->
             <div class="col-md-4 order-md-3">
                 <div class="plugin-card futuristic text-center">
-                    <div class="rank-bronze fs-2 mb-2"><i class="bi bi-award-fill"></i></div>
-                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">NP</div>
-                    <h5 class="fw-bold font-orbitron mb-1 text-white">NullPointer</h5>
-                    <p class="text-secondary small">Senior Expert</p>
-                    <div class="mt-2 text-cyan fw-bold">12,100 PTS</div>
+                    <div class="rank-bronze fs-2 mb-2">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                    <div class="avatar-circle mx-auto mb-3" style="width: 60px; height: 60px;">
+                        {{ top_users.2.user.username|slice:":2"|upper }}
+                    </div>
+                    <h5 class="fw-bold font-orbitron mb-1 text-white">
+                        {{ top_users.2.user.username }}
+                    </h5>
+                    <div class="mt-2 text-cyan fw-bold">
+                        {{ top_users.2.points }} PTS
+                    </div>
                 </div>
             </div>
+            {% endif %}
+
         </div>
+        {% endif %}
+
 
         <div class="plugin-card futuristic p-0 overflow-hidden">
             <div

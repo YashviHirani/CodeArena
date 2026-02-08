@@ -480,97 +480,118 @@
             window.location.href = `/insideQuiz?lang=${lang}`;
         }
 
-        // Chart Defaults matching the theme
+        // ================= CHART DEFAULTS =================
         Chart.defaults.color = '#b0b0cc';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
         Chart.defaults.font.family = "'Inter', sans-serif";
 
-        const ctxMcq = document.getElementById('mcqChart').getContext('2d');
+        // ================= CHART DEFAULTS =================
+Chart.defaults.color = '#b0b0cc';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+Chart.defaults.font.family = "'Inter', sans-serif";
 
-        // Gradient for the Line Chart
-        let gradientMcq = ctxMcq.createLinearGradient(0, 0, 0, 400);
-        gradientMcq.addColorStop(0, 'rgba(32, 201, 151, 0.4)');
-        gradientMcq.addColorStop(1, 'rgba(32, 201, 151, 0.0)');
 
-        new Chart(ctxMcq, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Accuracy (%)',
-                    data: [65, 72, 68, 80, 85, 82, 90],
-                    borderColor: '#20c997', // Primary Glow Color
-                    backgroundColor: gradientMcq,
-                    borderWidth: 2,
-                    pointBackgroundColor: '#050505',
-                    pointBorderColor: '#20c997',
-                    pointBorderWidth: 2,
-                    pointHoverBackgroundColor: '#20c997',
-                    fill: true,
-                    tension: 0.4
-                }]
+// ================= SAFE DATA PARSING =================
+const mcqLabels = JSON.parse('{{ mcq_labels|escapejs }}');
+const mcqPoints = JSON.parse('{{ mcq_points|escapejs }}');
+
+const firstCorrect = {{ first_correct|default:0 }};
+const secondCorrect = {{ second_correct|default:0 }};
+const thirdPlusCorrect = {{ third_plus_correct|default:0 }};
+const wrongAttempts = {{ wrong_attempts|default:0 }};
+
+
+// ================= MCQ LINE CHART =================
+const ctxMcq = document.getElementById('mcqChart').getContext('2d');
+
+let gradientMcq = ctxMcq.createLinearGradient(0, 0, 0, 400);
+gradientMcq.addColorStop(0, 'rgba(32, 201, 151, 0.4)');
+gradientMcq.addColorStop(1, 'rgba(32, 201, 151, 0.0)');
+
+new Chart(ctxMcq, {
+    type: 'line',
+    data: {
+        labels: mcqLabels,
+        datasets: [{
+            label: 'Daily Points',
+            data: mcqPoints,
+            borderColor: '#20c997',
+            backgroundColor: gradientMcq,
+            borderWidth: 2,
+            pointBackgroundColor: '#050505',
+            pointBorderColor: '#20c997',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#20c997',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,0.05)' }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 15, 26, 0.9)',
-                        titleColor: '#fff',
-                        bodyColor: '#b0b0cc',
-                        borderColor: 'rgba(255,255,255,0.1)',
-                        borderWidth: 1,
-                        padding: 10
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: { color: 'rgba(255,255,255,0.05)' }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+
+
+// ================= DEBUG DOUGHNUT =================
+const ctxDebug = document.getElementById('debugChart').getContext('2d');
+
+new Chart(ctxDebug, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            'First Attempt Correct',
+            'Second Attempt Correct',
+            'Third+ Attempt Correct',
+            'Wrong Attempts'
+        ],
+        datasets: [{
+            data: [
+                firstCorrect,
+                secondCorrect,
+                thirdPlusCorrect,
+                wrongAttempts
+            ],
+            backgroundColor: [
+                '#4e54c8',
+                '#20c997',
+                '#ffd700',
+                '#ff0055'
+            ],
+            borderColor: '#050505',
+            borderWidth: 4,
+            hoverOffset: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    boxWidth: 12,
+                    usePointStyle: true,
+                    padding: 20
                 }
             }
-        });
+        },
+        cutout: '75%'
+    }
+});
 
-        const ctxDebug = document.getElementById('debugChart').getContext('2d');
-
-        new Chart(ctxDebug, {
-            type: 'doughnut',
-            data: {
-                labels: ['Bugs Fixed', 'Attempts Failed', 'Timeouts'],
-                datasets: [{
-                    data: [45, 12, 5],
-                    backgroundColor: [
-                        '#4e54c8', // Secondary Color
-                        '#ff0055', // Danger Color
-                        '#2d2d44' // Dark Color
-                    ],
-                    borderColor: '#050505', // Match background for separation
-                    borderWidth: 4,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            boxWidth: 12,
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    }
-                },
-                cutout: '75%'
-            }
-        });
     </script>
     <script>
         function startDebugQuiz() {
