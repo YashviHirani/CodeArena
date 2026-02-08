@@ -17,3 +17,5 @@ def DebuggingQuiz(request):
     return render(request,"DebuggingQuiz.html")
 def leaderboard(request):
     return render(request,"leaderboard.html")
+def guestdashboard(request):
+    return render(request,"guestdashboard.html")

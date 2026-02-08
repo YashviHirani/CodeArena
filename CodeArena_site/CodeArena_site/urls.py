@@ -31,7 +31,8 @@ urlpatterns = [
     path('quiz/',views.quiz,name="quiz"),
     path('insideQuiz',views.insideQuiz,name="insideQuiz"),     
     path('DebuggingQuiz',views.DebuggingQuiz,name="DebuggingQuiz"),     
-    path("leaderboard",views.leaderboard,name="leaderboard"),                                                                                    
+    path("leaderboard",views.leaderboard,name="leaderboard"),      
+    path("guestdashboard/",views.guestdashboard,name="guestdashboard")                                                                              
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
