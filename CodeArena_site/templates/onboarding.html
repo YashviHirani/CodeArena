@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CodeArena | Complete Your Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-glow: #20c997;
+            --secondary-glow: #8f94fb;
+            --bg-dark: #050505;
+            --card-bg: rgba(255,255,255,0.04);
+            --card-border: rgba(255,255,255,0.1);
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top center,#1a1a2e 0%,#000 70%);
+            font-family: 'Inter', sans-serif;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        .onboard-card {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .onboard-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), var(--secondary-glow), transparent);
+            animation: slide 4s linear infinite;
+        }
+
+        @keyframes slide {
+            0% {transform: translateX(-100%)}
+            100% {transform: translateX(100%)}
+        }
+
+        .brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg,#20c997,#8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #9c9cbf;
+            margin-bottom: 40px;
+        }
+
+        .form-control, .form-control:focus {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: #fff;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px rgba(32,201,151,0.2);
+        }
+
+        .profile-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#20c997,#8f94fb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .btn-glow {
+            background: linear-gradient(90deg,#20c997,#4e54c8);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 12px rgba(32,201,151,0.6);
+        }
+
+        .btn-skip {
+            border: 1px solid var(--card-border);
+            color: #ccc;
+        }
+
+        @media(max-width:768px){
+            .onboard-card{
+                padding:30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="onboard-card">
+
+    <div class="brand text-center">CodeArena</div>
+    <div class="subtitle text-center">Complete your profile (Optional)</div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row g-4">
+
+            <!-- Left Column -->
+            <div class="col-md-4 text-center">
+                <div class="profile-preview" id="previewBox">
+                    <span id="previewInitial">{{ request.user.username|first|upper }}</span>
+                </div>
+
+                <input type="file" name="profile_img" class="form-control" onchange="previewImage(event)">
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-8">
+
+                <div class="mb-3">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Summary</label>
+                    <textarea name="summary" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label>Date of Birth</label>
+                    <input type="date" name="dob" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>GitHub</label>
+                    <input type="url" name="github" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>LinkedIn</label>
+                    <input type="url" name="linkedin" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Skills (comma separated)</label>
+                    <input type="text" name="skills" class="form-control">
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'dashboard' %}" class="btn btn-skip px-4">Skip</a>
+                    <button type="submit" class="btn btn-glow px-4">Save & Continue</button>
+                </div>
+
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>
+function previewImage(event){
+    const reader = new FileReader();
+    reader.onload = function(){
+        const preview = document.getElementById('previewBox');
+        preview.innerHTML = "<img src='"+reader.result+"'>";
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+</script>
+
+</body>
+</html>

@@ -20,6 +20,13 @@ import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 
 
+# for Error page 
+
+def custom_404_view(request, exception):
+    return render(request, "404.html", status=404)
+
+
+
 # ---------------- HOME ----------------
 
 def home_view(request):
@@ -105,16 +112,92 @@ def signup_view(request):
         )
 
         login(request, user)
-        return redirect("dashboard")
+        return redirect("complete_profile")
+
 
     return render(request, "signup.html")
+
+# from django.contrib.auth.decorators import login_required
+
+@login_required
+def complete_profile(request):
+    profile = request.user.profile
+
+    # If already completed → go dashboard
+    if profile.profile_completed:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+
+        # If skip button clicked
+        if "skip" in request.POST:
+            profile.profile_completed = True
+            profile.save()
+            return redirect("dashboard")
+
+        # Save optional fields
+        profile.profile_img = request.FILES.get("profile_img") or profile.profile_img
+        profile.full_name = request.POST.get("full_name", "")
+        profile.summary = request.POST.get("summary", "")
+        profile.dob = request.POST.get("dob") or None
+        profile.github = request.POST.get("github", "")
+        profile.linkedin = request.POST.get("linkedin", "")
+        profile.skills = request.POST.get("skills", "")
+
+        profile.profile_completed = True
+        profile.save()
+
+        return redirect("dashboard")
+
+    return render(request, "onboarding.html")
+
 
 
 # ---------------- DASHBOARD ----------------
 
+from django.db.models import Q
+from django.template.loader import render_to_string
+from .models import Problem, Topic
+
 @login_required
 def dashboard_view(request):
-    return render(request, "dashboard.html")
+
+    search_query = request.GET.get("q", "").strip()
+    difficulty = request.GET.get("difficulty", "all")
+    topic_id = request.GET.get("topic", "all")
+
+    problems = Problem.objects.select_related("topic").all()
+
+    # 🔍 SEARCH FILTER
+    if search_query:
+        problems = problems.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(topic__name__icontains=search_query)
+        )
+
+    # 🎯 DIFFICULTY FILTER
+    if difficulty != "all":
+        problems = problems.filter(difficulty=difficulty)
+
+    # 📚 TOPIC FILTER
+    if topic_id != "all":
+        problems = problems.filter(topic_id=topic_id)
+
+    # ✅ AJAX RESPONSE
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string(
+            "problem_table.html",
+            {"problems": problems},
+            request=request
+        )
+        return JsonResponse({"html": html})
+
+    return render(request, "dashboard.html", {
+        "problems": problems,
+        "topics": Topic.objects.all(),
+    })
+
 
 # ---------------- PROFILE ----------------
 
@@ -271,18 +354,6 @@ def submit_solution(request, problem_id):
     )
     daily.count += 1
     daily.save()
-
-# ------------------- Dashboard : to load problems from database  -----------------------
-
-from .models import Problem
-
-@login_required
-def dashboard_view(request):
-    problems = Problem.objects.all()
-
-    return render(request, "dashboard.html", {
-        "problems": problems
-    })
 
 # ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
 from .models import Problem
@@ -563,6 +634,7 @@ def quiz_home(request):
     }
 
     return render(request, "quiz.html", context)
+
 
 
 

@@ -45,6 +45,8 @@ class UserProfile(models.Model):
         return [skill.strip() for skill in self.skills.split(',')] if self.skills else []
     
     total_submissions = models.IntegerField(default=0)
+    profile_completed = models.BooleanField(default=False)
+
 
 # --- Learning Content Models ---
 

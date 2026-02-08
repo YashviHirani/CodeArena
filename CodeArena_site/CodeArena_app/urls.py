@@ -12,6 +12,12 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.conf.urls import handler404
+from CodeArena_app.views import custom_404_view
+
+handler404 = "CodeArena_app.views.custom_404_view"
+
+
 urlpatterns = [
     path('', views.home_view, name='home'),
     path('login/', views.login_view, name='login'),
@@ -32,5 +38,8 @@ urlpatterns = [
     path('quiz/debug/', views.debugging_quiz, name='debuggingQuiz'),
 
     path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'), 
-    path("quiz/summary/", views.quiz_summary, name="quiz_summary"),    
+    path("quiz/summary/", views.quiz_summary, name="quiz_summary"),
+
+    path("complete-profile/", views.complete_profile, name="complete_profile"),
+    
 ]

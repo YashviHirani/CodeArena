@@ -1,0 +1,43 @@
+{% for problem in problems %}
+<tr>
+
+    <td class="ps-4">
+        <i class="bi bi-circle text-secondary opacity-50"></i>
+    </td>
+
+    <td>
+        <div class="fw-bold text-white">{{ problem.title }}</div>
+        <small class="text-secondary">
+            {{ problem.description|truncatewords:6 }}
+        </small>
+    </td>
+
+    <td>
+        <span class="fw-bold
+            {% if problem.difficulty == 'easy' %}text-success
+            {% elif problem.difficulty == 'medium' %}text-warning
+            {% else %}text-danger{% endif %}">
+            {{ problem.difficulty|title }}
+        </span>
+    </td>
+
+    <td>
+        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-10">
+            {{ problem.topic.name }}
+        </span>
+    </td>
+
+    <td class="text-center">
+        <a href="{% url 'problem_detail' problem.id %}" class="btn btn-sm btn-glow">
+            Solve
+        </a>
+    </td>
+
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center text-secondary py-4">
+        No problems found.
+    </td>
+</tr>
+{% endfor %}
