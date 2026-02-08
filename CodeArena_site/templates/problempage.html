@@ -249,7 +249,7 @@
                     <ul class="navbar-nav mt-3">
                         <li class="nav-item"><a class="nav-link-custom active" href="{% url 'dashboard'%}"><i class="bi bi-terminal"></i> Problems</a></li>
                         <li class="nav-item"><a class="nav-link-custom" href="{%url 'profile' %}"><i class="bi bi-person"></i> Profile</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
                         <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
                         
                         <hr class="border-secondary opacity-25">
@@ -274,7 +274,7 @@
             <nav class="mt-4 flex-grow-1 px-2">
                 <a href="{% url 'dashboard'%}" class="nav-link-custom active"><i class="bi bi-terminal"></i> Problems</a>
                 <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
-                <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+                <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
                 <a href="{%url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
                
             </nav>
@@ -296,14 +296,14 @@
                 
                 <div class="mb-5 mt-3">
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <h5 class="text-secondary m-0" style="font-family: 'Orbitron'; letter-spacing: 1px;">PROBLEM #005</h5>
-                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Medium</span>
+                        <h5 class="text-secondary m-0" style="font-family: 'Orbitron'; letter-spacing: 1px;">PROBLEM #{{problem.id}}</h5>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3"> {{ problem.difficulty|title }}</span>
                     </div>
-                    <h1 class="display-4 fw-bold hero-gradient-text">Longest Palindromic Substring</h1>
+                    <h1 class="display-4 fw-bold hero-gradient-text">{{ problem.title }}</h1>
                 </div>
 
                 <div class="plugin-card futuristic">
-                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-info-circle me-2"></i> Description</h5>
+                    <h5 class="font-heading text-cyan mb-4"><i class="bi bi-info-circle me-2"></i> {{ problem.description }}</h5>
                     <p class="fs-5 text-light opacity-75" style="line-height: 1.6;">
                         Given a string <code class="text-info bg-dark px-2 rounded">s</code>, return the <strong>longest palindromic substring</strong> in <code class="text-info bg-dark px-2 rounded">s</code>.
                     </p>
@@ -373,9 +373,18 @@ class Solution {
             }, 800);
         }
         function submitSim() {
-            // Using a nicer styled alert or custom modal in production would be better, keeping basic for logic preservation
-            alert("Congratulations! Solution Accepted.\n\nRuntime: 2ms\nMemory: 41.5MB");
+            fetch("{% url 'submit_solution' problem.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("🎉 Solution Accepted!");
+            });
         }
+
     </script>
 </body>
 

@@ -370,13 +370,13 @@
                 <ul class="navbar-nav mt-3">
                     <li class="nav-item"><a class="nav-link-custom" href="{%url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
                     <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-person"></i> Edit Profile</a></li>
-                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
                     <hr class="border-secondary opacity-25">
                     <li class="nav-item d-flex align-items-center gap-3 py-2">
                         <div class="avatar-circle" style="width:35px; height:35px; font-size: 0.8rem;">JD</div>
                         <div>
-                            <div class="fw-bold text-white small">John Doe</div>
+                            <div class="fw-bold text-white small">{{user.username}}</div>
                             <div class="text-cyan" style="font-size: 0.7rem;">Rank #44</div>
                         </div>
                     </li>
@@ -394,7 +394,7 @@
         <nav class="mt-4 flex-grow-1 px-2">
             <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
             <a href="#" class="nav-link-custom"><i class="bi bi-person"></i> Edit Profile</a>
-            <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+            <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
             <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
         </nav>
 
@@ -402,7 +402,7 @@
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="avatar-circle">JD</div>
                 <div>
-                    <div class="fw-bold text-white">John Doe</div>
+                    <div class="fw-bold text-white">{{ user.username }}</div>
                     <div class="text-cyan small">Rank #44</div>
                 </div>
             </div>
@@ -416,20 +416,20 @@
             <div class="plugin-card" style="padding: 2.5rem;">
                 <div class="user-content d-flex align-items-center flex-wrap position-relative">
                     
-                    <img src="{% static 'image.png' %}" class="profile-img me-md-5" alt="Profile Picture">
+                    <img src="{{profile.profile_img.url}}" class="profile-img me-md-5" alt="Profile Picture">
                     
                     <div class="py-2">
-                        <button class="rank-pulse">🏆 Rank #44</button>
+                        <button class="rank-pulse">🏆 Rank #{{profile.rank}}</button>
                         
-                        <h1 class="display-4 fw-bold mb-2 text-white" style="letter-spacing: -1px;">John Doe</h1>
-                        
+                        <h1 class="display-4 fw-bold mb-2 text-white" style="letter-spacing: -1px;">{{user.username}}</h1>
+                        {% if profile.summary %}
                         <p class="h5 mb-4" style="color: var(--text-muted); font-weight: 300;">
-                            Passionate Coder | Problem Solver | Open Source Enthusiast
+                            {{profile.summary}}
                         </p> 
-                        
+                        {% endif %}
                         <div class="d-flex flex-wrap gap-4 mt-2" style="color: var(--text-muted); font-size: 0.95rem;">
-                            <span><i class=" me-2 text-neon-cyan"></i>✉️ johndoe@example.com</span>
-                            <span><i class=" me-2 text-neon-cyan"></i>📅 Member since Dec 2024</span>
+                            <span><i class=" me-2 text-neon-cyan"></i>✉️ {{user.email}}</span>
+                            <span><i class=" me-2 text-neon-cyan"></i>📅 Member since {{ member_since|date:"M Y" }}</span>
                         </div>
                     </div>
                 </div>
@@ -441,28 +441,28 @@
         <div class="col-6 col-lg-3">
             <div class="plugin-card text-center p-4">
                 <div class="mb-2"><i class="bi bi-check-circle-fill fs-3 text-neon-cyan"></i></div>
-                <h3 class="fw-bold text-white mb-0 font-heading">213</h3>
+                <h3 class="fw-bold text-white mb-0 font-heading">{{ total_solved }}</h3>
                 <p class="small" style="color: gray;">Problems Solved</p>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="plugin-card text-center p-4">
                 <div class="mb-2"><i class="bi bi-fire fs-3" style="color: #ff6b6b;"></i></div>
-                <h3 class="fw-bold text-white mb-0 font-heading">7 days</h3>
+                <h3 class="fw-bold text-white mb-0 font-heading">{{ profile.current_streak }}</h3>
                 <p class="small" style="color: gray;">Current Streak</p>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="plugin-card text-center p-4">
                 <div class="mb-2"><i class="bi bi-trophy-fill fs-3 text-gold"></i></div>
-                <h3 class="fw-bold text-white mb-0 font-heading">21 days</h3>
+                <h3 class="fw-bold text-white mb-0 font-heading">{{ profile.max_streak }} days</h3>
                 <p class="small" style="color: gray;">Max Streak</p>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="plugin-card text-center p-4">
                 <div class="mb-2"><i class="bi bi-code-slash fs-3 text-purple"></i></div>
-                <h3 class="fw-bold text-white mb-0 font-heading">324</h3>
+                <h3 class="fw-bold text-white mb-0 font-heading">{{ profile.total_submissions }}</h3>
                 <p class="small" style="color: gray;">Total Submissions</p>
             </div>
         </div>
@@ -552,12 +552,11 @@
                         </span>
                     </div>
                     
-                    <div class="d-flex flex-wrap align-items-center gap-3" id="skillsContainer">
-                        <div class="skill-tag">Java</div>
-                        <div class="skill-tag">Spring Boot</div>
-                        <div class="skill-tag">Git & GitHub</div>
-                        <div class="skill-tag">HTML/CSS</div>
-                        
+                   <div class="d-flex flex-wrap align-items-center gap-3" id="skillsContainer">
+                        {% for skill in profile.get_skills_list %}
+                            <div class="skill-tag">{{ skill|title }}</div>
+                        {% endfor %}
+
                         <button class="btn-add-skill" data-bs-toggle="modal" data-bs-target="#skillModal">
                             <i class="bi bi-plus fs-4"></i>
                         </button>
@@ -610,7 +609,27 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    
+    // ---- CSRF TOKEN HELPER ----
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
     // --- CALENDAR LOGIC (UNCHANGED) ---
+    const activityData = {{ activity|safe }};
     const calendar = document.getElementById("calendar");
     const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     const currentYear = new Date().getFullYear();
@@ -644,7 +663,8 @@
 
       for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
         const day = document.createElement("div");
-        const level = Math.floor(Math.random() * 5);
+        const dateKey = `${currentYear}-${String(index+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+        const level = activityData[dateKey] || 0;
         day.className = `day l${level}`;
         day.title = `${month} ${dayNum}, ${currentYear}`;
         monthGrid.appendChild(day);
@@ -655,35 +675,45 @@
       calendar.appendChild(monthWrapper);
     });
 
-    // --- ADD NEW SKILL LOGIC ---
     function addNewSkill() {
-        const input = document.getElementById('newSkillInput');
-        const container = document.getElementById('skillsContainer');
-        const addButton = document.querySelector('.btn-add-skill');
-        
-        const skillName = input.value.trim();
-        
-        if(skillName) {
-            // 1. Create the new skill tag
-            const newSkill = document.createElement('div');
-            newSkill.className = 'skill-tag';
-            newSkill.innerText = skillName;
-            
-            // 2. Insert it before the + button
-            container.insertBefore(newSkill, addButton);
-            
-            // 3. Clear the text box
-            input.value = "";
-            
-            // 4. SECURELY CLOSE THE MODAL
-            const modalElement = document.getElementById('skillModal');
-            // 'getOrCreateInstance' fixes the "stuck" issue by ensuring we always have control of the window
-            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
-            modalInstance.hide();
-        } else {
-            alert("Please enter a skill name!");
-        }
+    const input = document.getElementById('newSkillInput');
+    const container = document.getElementById('skillsContainer');
+    const addButton = document.querySelector('.btn-add-skill');
+
+    const skillName = input.value.trim();
+    if (!skillName) {
+        alert("Please enter a skill name!");
+        return;
     }
+
+    // ---- FRONTEND UPDATE (instant UX) ----
+    const newSkill = document.createElement('div');
+    newSkill.className = 'skill-tag';
+    newSkill.innerText = skillName;
+    container.insertBefore(newSkill, addButton);
+
+    input.value = "";
+
+    // ---- BACKEND SYNC ----
+    fetch("/update-skills/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrftoken,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+            skill: skillName,
+            action: "add"
+        })
+    });
+
+    // Close modal safely
+    const modal = bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('skillModal')
+    );
+    modal.hide();
+}
+
     
     // Allow pressing 'Enter' in the Add Skill box
     document.getElementById('newSkillInput').addEventListener('keypress', function (e) {
@@ -712,21 +742,37 @@
         }
     });
 
+function deleteSkill() {
+    if (!currentSkillElement) return;
 
-    function deleteSkill() {
-        if (currentSkillElement) {
-            // Visual effect
-            currentSkillElement.style.transform = "scale(0)";
-            // Remove from HTML after small delay
-            setTimeout(() => {
-                currentSkillElement.remove();
-            }, 300);
-            
-            // Close Modal
-            const manageModal = bootstrap.Modal.getOrCreateInstance(manageModalElement);
-            manageModal.hide();
-        }
-    }
+    const skillName = currentSkillElement.innerText;
+
+    // ---- FRONTEND EFFECT ----
+    currentSkillElement.style.transform = "scale(0)";
+    setTimeout(() => {
+        currentSkillElement.remove();
+    }, 300);
+
+    // ---- BACKEND SYNC ----
+    fetch("/update-skills/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrftoken,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+            skill: skillName,
+            action: "remove"
+        })
+    });
+
+    // Close modal
+    const modal = bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('manageSkillModal')
+    );
+    modal.hide();
+}
+
 </script>
 </body>
 </html>

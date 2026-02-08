@@ -17,4 +17,6 @@ venv/
 .idea/
 .vscode/
 
+# Database
 db.sqlite3
+*.sqlite3

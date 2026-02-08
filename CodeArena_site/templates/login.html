@@ -208,6 +208,12 @@
 
       <form method="POST">
         {% csrf_token %}
+        {% if error %}
+          <div class="alert alert-danger text-center">
+            {{ error }}
+          </div>
+        {% endif %}
+
         <input type="hidden" name="login">
 
         <div class="input-group">

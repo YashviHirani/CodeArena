@@ -347,7 +347,7 @@
 
         <nav class="mt-4 flex-grow-1">
             <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
-            <a href="{% url 'quiz' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+            <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
             <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
         </nav>
 
@@ -473,83 +473,58 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for problem in problems %}
                         <tr>
-                            <td class="ps-4"><i class="bi bi-check-circle-fill text-success"></i></td>
-                            <td>
-                                <div class="fw-bold text-white">Two Sum Challenge</div>
-                                <small class="text-secondary">Find indices of two numbers</small>
+                            <!-- Status -->
+                            <td class="ps-4">
+                                <!-- {% if problem.id in solved_problem_ids %} -- ignore for now coz solved status is not there now demo for testing--> 
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                {% else %}
+                                    <i class="bi bi-circle text-secondary opacity-50"></i>
+                                {% endif %}
                             </td>
-                            <td><span class="text-success fw-bold">Easy</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Arrays</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
-                        </tr>
 
-                        <tr>
-                            <td class="ps-4"><i class="bi bi-circle text-secondary opacity-50"></i></td>
+                            <!-- Problem Title -->
                             <td>
-                                <div class="fw-bold text-white">Palindrome Number</div>
-                                <small class="text-secondary">Check if integer reads same backward</small>
+                                <div class="fw-bold text-white">{{ problem.title }}</div>
+                                <small class="text-secondary">
+                                    {{ problem.description|truncatewords:6 }}
+                                </small>
                             </td>
-                            <td><span class="text-success fw-bold">Easy</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Math</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
-                        </tr>
 
-                        <tr>
-                            <td class="ps-4"><i class="bi bi-circle text-secondary opacity-50"></i></td>
+                            <!-- Difficulty -->
                             <td>
-                                <div class="fw-bold text-white">Longest Substring</div>
-                                <small class="text-secondary">Without repeating characters</small>
+                                <span class="fw-bold
+                                    {% if problem.difficulty == 'easy' %}text-success
+                                    {% elif problem.difficulty == 'medium' %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                    {{ problem.difficulty|title }}
+                                </span>
                             </td>
-                            <td><span class="text-warning fw-bold">Medium</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Sliding Window</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
-                        </tr>
 
-                        <tr>
-                            <td class="ps-4"><i class="bi bi-check-circle-fill text-success"></i></td>
+                            <!-- Category / Topic -->
                             <td>
-                                <div class="fw-bold text-white">Container With Most Water</div>
-                                <small class="text-secondary">Maximize the area of the container</small>
+                                <span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">
+                                    {{ problem.topic.name }}
+                                </span>
                             </td>
-                            <td><span class="text-warning fw-bold">Medium</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Two Pointers</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
-                        </tr>
 
-                        <tr>
-                            <td class="ps-4"><i class="bi bi-circle text-secondary opacity-50"></i></td>
-                            <td>
-                                <div class="fw-bold text-white">Trapping Rain Water</div>
-                                <small class="text-secondary">Calculate trapped volume</small>
+                            <!-- Action -->
+                            <td class="text-center">
+                                <a href="{% url 'problem_detail' problem.id %}" class="btn btn-sm btn-glow">
+                                    Solve
+                                </a>
                             </td>
-                            <td><span class="text-danger fw-bold">Hard</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Dynamic Prog.</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
                         </tr>
-
+                        {% empty %}
                         <tr>
-                            <td class="ps-4"><i class="bi bi-circle text-secondary opacity-50"></i></td>
-                            <td>
-                                <div class="fw-bold text-white">Merge K Sorted Lists</div>
-                                <small class="text-secondary">Combine multiple linked lists</small>
+                            <td colspan="5" class="text-center text-secondary py-4">
+                                No problems available right now.
                             </td>
-                            <td><span class="text-danger fw-bold">Hard</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Heap</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
                         </tr>
-
-                        <tr>
-                            <td class="ps-4"><i class="bi bi-check-circle-fill text-success"></i></td>
-                            <td>
-                                <div class="fw-bold text-white">Valid Parentheses</div>
-                                <small class="text-secondary">Check stack-based bracket order</small>
-                            </td>
-                            <td><span class="text-success fw-bold">Easy</span></td>
-                            <td><span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">Stacks</span></td>
-                            <td class="text-center"><a href="#" class="btn btn-sm btn-glow">Solve</a></td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
+
                 </table>
             </div>
         </div>
