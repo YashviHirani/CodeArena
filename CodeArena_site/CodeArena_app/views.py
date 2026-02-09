@@ -446,7 +446,6 @@ def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
-
 @csrf_exempt
 @login_required
 def save_mcq_answer(request):
@@ -458,6 +457,8 @@ def save_mcq_answer(request):
     selected_option = data.get("selected_option")
 
     quiz = get_object_or_404(Quiz, id=quiz_id)
+    profile = request.user.profile
+
     is_correct = selected_option == quiz.question.correct_option
 
     attempt, created = UserMCQAttempt.objects.get_or_create(
@@ -466,23 +467,42 @@ def save_mcq_answer(request):
         defaults={
             "selected_option": selected_option,
             "is_correct": is_correct,
-            "completed": is_correct,
+            "completed": False,
             "attempts": 1,
         }
     )
 
+    # ================= UPDATE ATTEMPT =================
     if not created:
         attempt.attempts += 1
         attempt.selected_option = selected_option
         attempt.is_correct = is_correct
-        attempt.completed = is_correct
-        attempt.save()
+
+    # ================= ADD POINTS ONLY ON FIRST SUCCESS =================
+    points_added = 0
+
+    if is_correct and not attempt.completed:
+        difficulty = quiz.difficulty  # "E", "M", "H"
+        attempt_no = attempt.attempts
+
+        points_added = QUIZ_POINTS.get(difficulty, {}).get(
+            attempt_no,
+            AFTER_THIRD_ATTEMPT_POINTS
+        )
+
+        profile.points += points_added
+        attempt.completed = True
+        profile.save()
+
+    attempt.save()
 
     return JsonResponse({
         "correct": is_correct,
         "attempts": attempt.attempts,
+        "points_added": points_added,
         "quiz_type": quiz.quiz_type,
     })
+
 
 
 def get_quiz_questions(user, language, limit=10):
