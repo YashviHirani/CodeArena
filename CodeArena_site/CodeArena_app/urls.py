@@ -34,6 +34,6 @@ urlpatterns = [
     path('quiz/debug/', views.debugging_quiz, name='debuggingQuiz'),
 
     path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'), 
-    path("quiz/summary/", views.quiz_summary, name="quiz_summary"),    
-
+    path("quiz/summary/", views.quiz_summary, name="quiz_summary"), 
+    path("guestdashboard/",views.guestdashboard,name='guestdashboard'),   
 ]

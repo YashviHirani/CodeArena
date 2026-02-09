@@ -28,7 +28,8 @@ def home_view(request):
 # ---------------- LOGIN ----------------
 
 User = get_user_model()
-
+def guestdashboard(request):
+    return render(request,"guestdashboard.html")
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
