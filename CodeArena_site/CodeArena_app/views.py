@@ -448,27 +448,41 @@ def start_quiz(request):
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 @csrf_exempt
+@login_required
 def save_mcq_answer(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-        quiz_id = data.get("quiz_id")
-        selected_option = data.get("selected_option")
+    data = json.loads(request.body)
+    quiz_id = data.get("quiz_id")
+    selected_option = data.get("selected_option")
 
-        quiz = get_object_or_404(Quiz, id=quiz_id)
-        is_correct = selected_option == quiz.question.correct_option
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    is_correct = selected_option == quiz.question.correct_option
 
-        UserMCQAttempt.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={
-                "selected_option": selected_option,
-                "is_correct": is_correct,
-                "completed": is_correct
-            }
-        )
+    attempt, created = UserMCQAttempt.objects.get_or_create(
+        user=request.user,
+        quiz=quiz,
+        defaults={
+            "selected_option": selected_option,
+            "is_correct": is_correct,
+            "completed": is_correct,
+            "attempts": 1,
+        }
+    )
 
-        return JsonResponse({"correct": is_correct})
+    if not created:
+        attempt.attempts += 1
+        attempt.selected_option = selected_option
+        attempt.is_correct = is_correct
+        attempt.completed = is_correct
+        attempt.save()
+
+    return JsonResponse({
+        "correct": is_correct,
+        "attempts": attempt.attempts,
+        "quiz_type": quiz.quiz_type,
+    })
 
 
 def get_quiz_questions(user, language, limit=10):
@@ -518,19 +532,34 @@ def quiz_home(request):
     # ================= DEBUGGING ATTEMPT BREAKDOWN =================
     attempts = UserMCQAttempt.objects.filter(user=user)
 
-    first_correct = attempts.filter(is_correct=True, attempts=1).count()
-    second_correct = attempts.filter(is_correct=True, attempts=2).count()
-    third_plus_correct = attempts.filter(is_correct=True, attempts__gte=3).count()
+    def calc_stats(qs):
+        return {
+            "first": qs.filter(is_correct=True, attempts=1).count(),
+            "second": qs.filter(is_correct=True, attempts=2).count(),
+            "third_plus": qs.filter(is_correct=True, attempts__gte=3).count(),
+            "wrong": qs.filter(is_correct=False).count(),
+        }
 
-    wrong_attempts = attempts.filter(is_correct=False).count()
+    mcq_stats = calc_stats(attempts.filter(quiz__quiz_type="MCQ"))
+    debug_stats = calc_stats(attempts.filter(quiz__quiz_type="DEBUG"))
+
 
     context = {
         "mcq_labels": json.dumps(mcq_labels),
         "mcq_points": json.dumps(mcq_points),
-        "first_correct": first_correct,
-        "second_correct": second_correct,
-        "third_plus_correct": third_plus_correct,
-        "wrong_attempts": wrong_attempts,
+
+        # MCQ
+        "mcq_first": mcq_stats["first"],
+        "mcq_second": mcq_stats["second"],
+        "mcq_third_plus": mcq_stats["third_plus"],
+        "mcq_wrong": mcq_stats["wrong"],
+
+        # DEBUG
+        "debug_first": debug_stats["first"],
+        "debug_second": debug_stats["second"],
+        "debug_third_plus": debug_stats["third_plus"],
+        "debug_wrong": debug_stats["wrong"],
+
         "languages": Language.objects.all(),
     }
 
@@ -676,14 +705,16 @@ def debugging_quiz(request):
         quiz_data.append({
             "quiz_id": quiz.id,
             "question": q.question_text,
+            "code_snippet": q.code_snippet,   # 👈 ADD THIS
             "options": [
                 q.option_a,
                 q.option_b,
                 q.option_c,
                 q.option_d,
             ],
-            "correct": q.correct_option,  # used for UI highlight
+            "correct": q.correct_option,
         })
+
 
     return render(request, "DebuggingQuiz.html", {
         "quiz_data": json.dumps(quiz_data),
@@ -718,6 +749,8 @@ def quiz_summary(request):
     for att in attempts:
         q = att.quiz.question
         summary.append({
+            "code_snippet": getattr(q, "code_snippet", ""),   # safe access
+            "quiz_type": att.quiz.quiz_type,
             "question": q.question_text,
             "options": {
                 "A": q.option_a,

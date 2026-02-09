@@ -121,7 +121,15 @@
 
         <!-- QUIZ -->
         <div id="quizBox" class="glass-card mb-4">
-            <h4 id="question" class="mb-4"></h4>
+            <h4 id="question" class="mb-3"></h4>
+
+            <pre id="codeSnippet" class="p-3 rounded mb-4" style="background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-family: monospace;
+            display:none;
+            white-space: pre-wrap;">
+            </pre>
+
             <div id="options" class="d-flex flex-column gap-3"></div>
         </div>
 
@@ -152,7 +160,7 @@
     </script>
 
     <script>
-        
+
 
         // Store current quiz IDs (ONLY this quiz run)
         const currentQuizIds = questions.map(q => q.quiz_id);
@@ -189,6 +197,16 @@
             progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
 
             questionEl.innerText = q.question;
+
+            const codeBox = document.getElementById("codeSnippet");
+
+            if (q.code_snippet && q.code_snippet.trim() !== "") {
+                codeBox.style.display = "block";
+                codeBox.innerText = q.code_snippet;
+            } else {
+                codeBox.style.display = "none";
+            }
+
             optionsEl.innerHTML = "";
 
             q.options.forEach((text, i) => {
