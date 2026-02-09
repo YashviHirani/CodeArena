@@ -18,28 +18,15 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
-from .models import ExampleTestCase
 
-# Move these to the TOP of views.py (after imports)
 
-# ================== PROBLEM POINT CONFIG ==================
-PROBLEM_POINTS = {
-    "easy": 10,
-    "medium": 15,
-    "hard": 20,
-}
-
-# ================== QUIZ POINT CONFIG ==================
-QUIZ_POINTS = {
-    "H": {1: 10, 2: 9, 3: 8},
-    "M": {1: 8,  2: 7, 3: 6},
-    "E": {1: 6,  2: 5, 3: 4},
-}
-AFTER_THIRD_ATTEMPT_POINTS = 2
 # for Error page 
 
 def custom_404_view(request, exception):
     return render(request, "404.html", status=404)
+
+
+
 # ---------------- HOME ----------------
 
 def home_view(request):
@@ -48,8 +35,7 @@ def home_view(request):
 # ---------------- LOGIN ----------------
 
 User = get_user_model()
-def guestdashboard(request):
-    return render(request,"guestdashboard.html")
+
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -233,6 +219,34 @@ def profile_view(request):
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 
+# @login_required
+# def leaderboard_view(request):
+#     profiles = (
+#         UserProfile.objects
+#         .filter(points__gt=0)
+#         .select_related("user")
+#         .order_by("-points", "user__username")
+#     )
+
+#     ranked_profiles = []
+#     last_points = None
+#     rank = 0
+
+#     for index, profile in enumerate(profiles, start=1):
+#         if profile.points != last_points:
+#             rank = index
+#             last_points = profile.points
+#         profile.rank = rank
+#         ranked_profiles.append(profile)
+
+#     # 🔥 TOP 3 USERS
+#     top_users = ranked_profiles[:3]
+
+#     return render(request, "leaderboard.html", {
+#         "profiles": ranked_profiles,
+#         "top_users": top_users
+#     })
+
 
 from django.template.loader import render_to_string
 from django.http import JsonResponse
@@ -301,44 +315,18 @@ def leaderboard_view(request):
 
 @login_required
 def edit_profile_view(request):
-    user = request.user
-    profile = user.profile
+    profile = UserProfile.objects.get(user=request.user)
 
     if request.method == "POST":
-        new_username = request.POST.get("username")
-        
-        # Check if the new username is already taken by someone ELSE
-        if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
-            return render(request, "edit_profile.html", {
-                "profile": profile, 
-                "user": user, 
-                "error": "This username is already taken by another user!"
-            })
-
-        # Update User fields
-        user.username = new_username
-        user.email = request.POST.get("email")
-        user.save()
-
-        # Update Profile fields
         profile.full_name = request.POST.get("full_name")
-        profile.github = request.POST.get("github")
-        profile.linkedin = request.POST.get("linkedin")
-        profile.twitter = request.POST.get("twitter")
-        profile.location = request.POST.get("location")
-        profile.summary = request.POST.get("summary")
-        profile.education = request.POST.get("education")
-        profile.work_experience = request.POST.get("experience")
-        
-        if request.FILES.get("profile_img"):
-            profile.profile_img = request.FILES.get("profile_img")
-            
+        profile.dob = request.POST.get("dob")
+        profile.skills = request.POST.get("skills")
         profile.save()
-        
-        # Redirect back to the profile page
+
         return redirect("profile")
 
-    return render(request, "edit_profile.html", {"profile": profile, "user": user})
+    return render(request, "edit_profile.html", {"profile": profile})
+
 # ---------------- SIGNAL ----------------
 
 # This guarantees profile creation even if admin creates user
@@ -375,28 +363,18 @@ def update_skills(request):
 
         return JsonResponse({"status": "ok"})
 
-# ------------------- Dashboard : to load problems from database  -----------------------
 
+
+# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
 from .models import Problem
 
 @login_required
-def dashboard_view(request):
-    problems = Problem.objects.all()
+def problem_detail_view(request, problem_id):
+    problem = Problem.objects.get(id=problem_id)
 
-    return render(request, "dashboard.html", {
-        "problems": problems
+    return render(request, "problemPage.html", {
+        "problem": problem
     })
-
-# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
-# from .models import Problem
-
-# @login_required
-# def problem_detail_view(request, problem_id):
-#     problem = Problem.objects.get(id=problem_id)
-
-#     return render(request, "problemPage.html", {
-#         "problem": problem
-#     })
 
 # ------------------- SUBMISSION LOGIC (THIS IS THE HEART ❤️) -----------------------
 
@@ -405,6 +383,61 @@ from .models import DailySubmission
 from django.db import IntegrityError
 from .models import ProblemSubmission
 
+@login_required
+def submit_solution(request, problem_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    problem = get_object_or_404(Problem, id=problem_id)
+    profile = request.user.profile
+
+    # 1️⃣ Total submissions
+    profile.total_submissions += 1
+
+    # 2️⃣ Daily submissions
+    today = now().date()
+    daily, _ = DailySubmission.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+    daily.count += 1
+    daily.save()
+
+    # 3️⃣ Prevent duplicate solving
+    solved, created = ProblemSubmission.objects.get_or_create(
+        user=request.user,
+        problem=problem,
+        defaults={"is_correct": True}
+    )
+
+    if not created:
+        # ❌ Already solved before → no points
+        profile.save()
+        return JsonResponse({
+            "status": "already_solved",
+            "points_added": 0
+        })
+
+    # 4️⃣ Difficulty-based points
+    points = PROBLEM_POINTS[problem.difficulty]
+    profile.points += points
+
+    # 5️⃣ Solved counters
+    if problem.difficulty == "easy":
+        profile.easy_solved += 1
+    elif problem.difficulty == "medium":
+        profile.medium_solved += 1
+    else:
+        profile.hard_solved += 1
+
+    profile.save()
+
+    return JsonResponse({
+        "status": "accepted",
+        "points_added": points
+    })
+
+    
 # ----------------------- QUIZ ------------------------
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
@@ -466,34 +499,6 @@ def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
-
-
-# @login_required
-@csrf_exempt
-def save_mcq_answer(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        quiz_id = data.get("quiz_id")
-        selected_option = data.get("selected_option")
-
-        quiz = get_object_or_404(Quiz, id=quiz_id)
-        is_correct = selected_option == quiz.question.correct_option
-
-        UserMCQAttempt.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={
-                "selected_option": selected_option,
-                "is_correct": is_correct,
-                "completed": is_correct
-            }
-        )
-
-        return JsonResponse({"correct": is_correct})
-
-
-
 
 
 def get_quiz_questions(user, language, limit=10):
@@ -817,180 +822,99 @@ def get_quizzes(user, language, quiz_type, limit=10):
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
 
-def problem_detail(request, problem_id):
-    problem = Problem.objects.get(id=problem_id)
-
-    example = problem.example              # OneToOne
-    testcases = problem.testcases.all()    # ForeignKey
-
-    context = {
-        "problem": problem,
-        "example": example,
-        "testcases": testcases,
-    }
-    return render(request, "problemPage.html", context)
 
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
+    # ================== QUIZ POINT CONFIG ==================
 
-@login_required
-@require_POST
-def update_skills(request):
-    profile = request.user.profile
-    skill = request.POST.get("skill", "").strip()
-    action = request.POST.get("action")
+QUIZ_POINTS = {
+    "H": {1: 10, 2: 9, 3: 8},
+    "M": {1: 8,  2: 7, 3: 6},
+    "E": {1: 6,  2: 5, 3: 4},
+}
 
-    if not skill:
-        return JsonResponse({"error": "Skill cannot be empty"}, status=400)
+AFTER_THIRD_ATTEMPT_POINTS = 2
 
-    # Normalize (case-insensitive handling)
-    skill_normalized = skill.lower()
 
-    # Convert existing skills to normalized list
-    skills_list = [
-        s.strip().lower()
-        for s in profile.skills.split(",")
-        if s.strip()
-    ]
-
-    if action == "add":
-        if skill_normalized in skills_list:
-            return JsonResponse(
-                {"error": "Skill already exists"},
-                status=409
-            )
-
-        skills_list.append(skill_normalized)
-
-    elif action == "remove":
-        if skill_normalized in skills_list:
-            skills_list.remove(skill_normalized)
-
-    else:
-        return JsonResponse({"error": "Invalid action"}, status=400)
-
-    # Save back to DB (keep comma-separated format)
-    profile.skills = ", ".join(skills_list)
-    profile.save(update_fields=["skills"])
-
-    return JsonResponse({"success": True})
-
-# @login_required
-# def problem_detail(request, problem_id):
-#     problem = get_object_or_404(Problem, id=problem_id)
-
-#     example = None
-#     try:
-#         example = problem.example
-#     except ExampleTestCase.DoesNotExist:
-#         example = None
-
-#     testcases = problem.testcases.all()
-
-#     context = {
-#         "problem": problem,
-#         "example": example,
-#         "testcases": testcases,
-#     }
-#     return render(request, "problemPage.html", context)
-@login_required
-def problem_detail(request, problem_id):
-    problem = get_object_or_404(Problem, id=problem_id)
-
-    example = getattr(problem, "example", None)   # safe OneToOne
-    testcases = problem.testcases.all()            # safe FK
-
-    context = {
-        "problem": problem,
-        "example": example,
-        "testcases": testcases,
-        # Pass starter code from views.py
-        "starter_code": {
-            "java": problem.starter_code_java,
-            "python": problem.starter_code_python,
-            "cpp": problem.starter_code_cpp,
-        }
-    }
-    return render(request, "problemPage.html", context)
-
-from django.views.decorators.csrf import csrf_exempt
+def calculate_quiz_points(difficulty, attempts):
+    """
+    difficulty: 'E', 'M', 'H'
+    attempts: int
+    """
+    if attempts <= 3:
+        return QUIZ_POINTS[difficulty][attempts]
+    return AFTER_THIRD_ATTEMPT_POINTS
 
 
 @csrf_exempt
-@login_required
-def submit_solution(request, problem_id):
-    from .judge import judge_code  # Keeping your judge import
-
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
-
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-    # 1️⃣ DATA RETRIEVAL
-    code = data.get("code")
-    language = data.get("language")
-    problem = get_object_or_404(Problem, id=problem_id)
-    profile = request.user.profile
-
-    if not code or not language:
-        return JsonResponse({"error": "Missing code or language"}, status=400)
-
-    # 2️⃣ RUN THE JUDGE (Your Judge Logic)
-    testcases = problem.testcases.all()
-    result = judge_code(language, code, testcases)
-
-    # 3️⃣ UPDATE SUBMISSION STATS (Your Submission Logic)
-    profile.total_submissions += 1
-    
-    today = now().date()
-    daily, _ = DailySubmission.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
-    daily.count += 1
-    daily.save()
-
-    # 4️⃣ HANDLE SUCCESSFUL VERDICT (Your Points & Marking Logic)
-    response = {"verdict": result["verdict"]}
-
-    if result["verdict"] == "Accepted":
-        response["time_ms"] = result["time_ms"]
-        response["memory_mb"] = result["memory_mb"]
-
-        # Prevent duplicate solving points/marking
-        solved, created = ProblemSubmission.objects.get_or_create(
-            user=request.user,
-            problem=problem,
-            defaults={"is_correct": True}
+def save_mcq_answer(request):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"error": "Login required"},
+            status=401
         )
 
-        if created:
-            # First time solving: Add points and update counters
-            points = PROBLEM_POINTS.get(problem.difficulty, 10)
-            profile.points += points
+    data = json.loads(request.body)
+    quiz = get_object_or_404(Quiz, id=data["quiz_id"])
+    selected = data["selected_option"]
 
-            if problem.difficulty == "easy":
-                profile.easy_solved += 1
-            elif problem.difficulty == "medium":
-                profile.medium_solved += 1
-            else:
-                profile.hard_solved += 1
-            
-            response["points_added"] = points
-        else:
-            response["status"] = "already_solved"
-            response["points_added"] = 0
-    else:
-        # Failed submission logic
-        response["failed_testcase"] = result.get("failed_testcase")
-        response["error"] = result.get("error")
+    is_correct = selected == quiz.question.correct_option
+    profile = request.user.profile
 
-    # Final save for the profile
+    attempt, created = UserMCQAttempt.objects.get_or_create(
+        user=request.user,
+        quiz=quiz,
+        defaults={"attempts": 0}
+    )
+
+    # ⏱ Increase attempt count
+    attempt.attempts += 1
+    attempt.selected_option = selected
+    attempt.is_correct = is_correct
+    attempt.completed = is_correct
+    attempt.save()
+
+    # 🎯 GIVE POINTS ONLY WHEN ANSWER IS CORRECT
+    if is_correct:
+        points = calculate_quiz_points(
+            quiz.difficulty,
+            attempt.attempts
+        )
+        profile.points += points
+        profile.save()
+
+    return JsonResponse({
+        "correct": is_correct,
+        "attempts": attempt.attempts,
+        "points_awarded": points if is_correct else 0
+    })
+
+
+def _calculate_quiz_points(quiz, attempts):
+    difficulty = quiz.difficulty  # E / M / H
+
+    if attempts <= 3:
+        return {
+            "H": {1: 10, 2: 9, 3: 8},
+            "M": {1: 8,  2: 7, 3: 6},
+            "E": {1: 6,  2: 5, 3: 4},
+        }[difficulty][attempts]
+
+    # ✅ After 3 attempts
+    return 2
+
+
+def _add_points(profile, points):
+    profile.points += points
     profile.save()
 
-    return JsonResponse(response)
+
+
+
+# ================== PROBLEM POINT CONFIG ==================
+
+PROBLEM_POINTS = {
+    "easy": 10,
+    "medium": 15,
+    "hard": 20,
+}
+
