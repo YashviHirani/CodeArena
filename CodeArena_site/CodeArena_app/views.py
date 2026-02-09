@@ -20,6 +20,22 @@ import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 from .models import ExampleTestCase
 
+# Move these to the TOP of views.py (after imports)
+
+# ================== PROBLEM POINT CONFIG ==================
+PROBLEM_POINTS = {
+    "easy": 10,
+    "medium": 15,
+    "hard": 20,
+}
+
+# ================== QUIZ POINT CONFIG ==================
+QUIZ_POINTS = {
+    "H": {1: 10, 2: 9, 3: 8},
+    "M": {1: 8,  2: 7, 3: 6},
+    "E": {1: 6,  2: 5, 3: 4},
+}
+AFTER_THIRD_ATTEMPT_POINTS = 2
 # for Error page 
 
 def custom_404_view(request, exception):
@@ -417,65 +433,6 @@ from .models import DailySubmission
 from django.db import IntegrityError
 from .models import ProblemSubmission
 
-
-@login_required
-def submit_solution(request, problem_id):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request"}, status=400)
-
-    problem = get_object_or_404(Problem, id=problem_id)
-    profile = request.user.profile
-
-
-    # 1️⃣ Total submissions
-    profile.total_submissions += 1
-
-
-    # 2️⃣ Daily submissions
-    today = now().date()
-    daily, _ = DailySubmission.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
-    daily.count += 1
-    daily.save()
-
-
-    # 3️⃣ Prevent duplicate solving
-    solved, created = ProblemSubmission.objects.get_or_create(
-        user=request.user,
-        problem=problem,
-        defaults={"is_correct": True}
-    )
-
-
-    if not created:
-        # ❌ Already solved before → no points
-        profile.save()
-        return JsonResponse({
-            "status": "already_solved",
-            "points_added": 0
-        })
-
-    # 4️⃣ Difficulty-based points
-    points = PROBLEM_POINTS[problem.difficulty]
-    profile.points += points
-
-    # 5️⃣ Solved counters
-    if problem.difficulty == "easy":
-        profile.easy_solved += 1
-    elif problem.difficulty == "medium":
-        profile.medium_solved += 1
-    else:
-        profile.hard_solved += 1
-
-    profile.save()
-
-    return JsonResponse({
-        "status": "accepted",
-        "points_added": points
-    })
-    
 # ----------------------- QUIZ ------------------------
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
@@ -888,116 +845,18 @@ def get_quizzes(user, language, quiz_type, limit=10):
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
 
+def problem_detail(request, problem_id):
+    problem = Problem.objects.get(id=problem_id)
 
+    example = problem.example              # OneToOne
+    testcases = problem.testcases.all()    # ForeignKey
 
-    # ================== QUIZ POINT CONFIG ==================
-
-QUIZ_POINTS = {
-    "H": {1: 10, 2: 9, 3: 8},
-    "M": {1: 8,  2: 7, 3: 6},
-    "E": {1: 6,  2: 5, 3: 4},
-}
-
-AFTER_THIRD_ATTEMPT_POINTS = 2
-
-
-def calculate_quiz_points(difficulty, attempts):
-    """
-    difficulty: 'E', 'M', 'H'
-    attempts: int
-    """
-    if attempts <= 3:
-        return QUIZ_POINTS[difficulty][attempts]
-    return AFTER_THIRD_ATTEMPT_POINTS
-
-
-@csrf_exempt
-def save_mcq_answer(request):
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {"error": "Login required"},
-            status=401
-        )
-
-    data = json.loads(request.body)
-    quiz = get_object_or_404(Quiz, id=data["quiz_id"])
-    selected = data["selected_option"]
-
-    is_correct = selected == quiz.question.correct_option
-    profile = request.user.profile
-
-    attempt, created = UserMCQAttempt.objects.get_or_create(
-        user=request.user,
-        quiz=quiz,
-        defaults={"attempts": 0}
-    )
-
-    # ⏱ Increase attempt count
-    attempt.attempts += 1
-    attempt.selected_option = selected
-    attempt.is_correct = is_correct
-    attempt.completed = is_correct
-    attempt.save()
-
-    # 🎯 GIVE POINTS ONLY WHEN ANSWER IS CORRECT
-    if is_correct:
-        points = calculate_quiz_points(
-            quiz.difficulty,
-            attempt.attempts
-        )
-        profile.points += points
-        profile.save()
-
-    return JsonResponse({
-        "correct": is_correct,
-        "attempts": attempt.attempts,
-        "points_awarded": points if is_correct else 0
-    })
-
-
-def _calculate_quiz_points(quiz, attempts):
-    difficulty = quiz.difficulty  # E / M / H
-
-    if attempts <= 3:
-        return {
-            "H": {1: 10, 2: 9, 3: 8},
-            "M": {1: 8,  2: 7, 3: 6},
-            "E": {1: 6,  2: 5, 3: 4},
-        }[difficulty][attempts]
-
-    # ✅ After 3 attempts
-    return 2
-
-
-def _add_points(profile, points):
-    profile.points += points
-    profile.save()
-
-
-
-
-# ================== PROBLEM POINT CONFIG ==================
-
-PROBLEM_POINTS = {
-    "easy": 10,
-    "medium": 15,
-    "hard": 20,
-}
-
-
-
-# def problem_detail(request, problem_id):
-#     problem = Problem.objects.get(id=problem_id)
-
-#     example = problem.example              # OneToOne
-#     testcases = problem.testcases.all()    # ForeignKey
-
-#     context = {
-#         "problem": problem,
-#         "example": example,
-#         "testcases": testcases,
-#     }
-#     return render(request, "problemPage.html", context)
+    context = {
+        "problem": problem,
+        "example": example,
+        "testcases": testcases,
+    }
+    return render(request, "problemPage.html", context)
 
 
 from django.http import JsonResponse
@@ -1086,10 +945,11 @@ def problem_detail(request, problem_id):
 
 from django.views.decorators.csrf import csrf_exempt
 
+
 @csrf_exempt
 @login_required
 def submit_solution(request, problem_id):
-    from .judge import judge_code
+    from .judge import judge_code  # Keeping your judge import
 
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
@@ -1099,32 +959,66 @@ def submit_solution(request, problem_id):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
+    # 1️⃣ DATA RETRIEVAL
     code = data.get("code")
     language = data.get("language")
+    problem = get_object_or_404(Problem, id=problem_id)
+    profile = request.user.profile
 
     if not code or not language:
         return JsonResponse({"error": "Missing code or language"}, status=400)
 
-    problem = get_object_or_404(Problem, id=problem_id)
+    # 2️⃣ RUN THE JUDGE (Your Judge Logic)
     testcases = problem.testcases.all()
-
     result = judge_code(language, code, testcases)
 
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    # 3️⃣ UPDATE SUBMISSION STATS (Your Submission Logic)
     profile.total_submissions += 1
-    profile.save()
+    
+    today = now().date()
+    daily, _ = DailySubmission.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+    daily.count += 1
+    daily.save()
 
-    response = {
-    "verdict": result["verdict"]
-    }
+    # 4️⃣ HANDLE SUCCESSFUL VERDICT (Your Points & Marking Logic)
+    response = {"verdict": result["verdict"]}
 
-    # ✅ ONLY show time/memory if Accepted
     if result["verdict"] == "Accepted":
         response["time_ms"] = result["time_ms"]
         response["memory_mb"] = result["memory_mb"]
+
+        # Prevent duplicate solving points/marking
+        solved, created = ProblemSubmission.objects.get_or_create(
+            user=request.user,
+            problem=problem,
+            defaults={"is_correct": True}
+        )
+
+        if created:
+            # First time solving: Add points and update counters
+            points = PROBLEM_POINTS.get(problem.difficulty, 10)
+            profile.points += points
+
+            if problem.difficulty == "easy":
+                profile.easy_solved += 1
+            elif problem.difficulty == "medium":
+                profile.medium_solved += 1
+            else:
+                profile.hard_solved += 1
+            
+            response["points_added"] = points
+        else:
+            response["status"] = "already_solved"
+            response["points_added"] = 0
     else:
+        # Failed submission logic
         response["failed_testcase"] = result.get("failed_testcase")
         response["error"] = result.get("error")
 
-    return JsonResponse(response)
+    # Final save for the profile
+    profile.save()
 
+    return JsonResponse(response)
