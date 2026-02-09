@@ -1,26 +1,18 @@
-from django.shortcuts import render, redirect
-from .models import UserProfile
-
-from django.contrib.auth import login, authenticate
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import UserProfile, ExampleTestCase, Problem, Topic, DailySubmission, ProblemSubmission
+from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
-
-from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.timezone import localtime, now  # Required for submit_solution
+from datetime import date, datetime, timedelta
 import json
 
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
-from .models import ExampleTestCase
-
-# Move these to the TOP of views.py (after imports)
 
 # ================== PROBLEM POINT CONFIG ==================
 PROBLEM_POINTS = {
@@ -28,7 +20,7 @@ PROBLEM_POINTS = {
     "medium": 15,
     "hard": 20,
 }
-
+# ... rest of your code
 # ================== QUIZ POINT CONFIG ==================
 QUIZ_POINTS = {
     "H": {1: 10, 2: 9, 3: 8},
@@ -43,13 +35,14 @@ def custom_404_view(request, exception):
 # ---------------- HOME ----------------
 
 def home_view(request):
-    return render(request, "home.html")
-
-# ---------------- LOGIN ----------------
+    return render(request, "home.html") 
 
 User = get_user_model()
+
 def guestdashboard(request):
     return render(request,"guestdashboard.html")
+
+# ---------------- LOGIN ----------------
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -232,36 +225,6 @@ def profile_view(request):
 
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
-
-# @login_required
-# def leaderboard_view(request):
-#     profiles = (
-#         UserProfile.objects
-#         .filter(points__gt=0)
-#         .select_related("user")
-#         .order_by("-points", "user__username")
-#     )
-
-#     ranked_profiles = []
-#     last_points = None
-#     rank = 0
-
-#     for index, profile in enumerate(profiles, start=1):
-#         if profile.points != last_points:
-#             rank = index
-#             last_points = profile.points
-#         profile.rank = rank
-#         ranked_profiles.append(profile)
-
-#     # 🔥 TOP 3 USERS
-#     top_users = ranked_profiles[:3]
-
-#     return render(request, "leaderboard.html", {
-#         "profiles": ranked_profiles,
-#         "top_users": top_users
-#     })
-
-
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.db.models import Q
@@ -379,124 +342,59 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 # ------------------- Update skill in database -----------------------
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
 @login_required
+@require_POST
 def update_skills(request):
-    if request.method == "POST":
-        skill = request.POST.get("skill", "")
-        action = request.POST.get("action")
+    profile = request.user.profile
+    skill = request.POST.get("skill", "").strip()
+    action = request.POST.get("action")
 
-        profile = request.user.profile
+    if not skill:
+        return JsonResponse({"error": "Skill cannot be empty"}, status=400)
 
-        # 🔥 NORMALIZE DATA (FIXES DELETE ISSUE)
-        skill = skill.strip().lower()
-        skills = [s.strip().lower() for s in profile.get_skills_list()]
+    # Normalize (case-insensitive handling)
+    skill_normalized = skill.lower()
 
-        if action == "add" and skill and skill not in skills:
-            skills.append(skill)
+    # Convert existing skills to normalized list
+    skills_list = [
+        s.strip().lower()
+        for s in profile.skills.split(",")
+        if s.strip()
+    ]
 
-        if action == "remove" and skill in skills:
-            skills.remove(skill)
+    if action == "add":
+        if skill_normalized in skills_list:
+            return JsonResponse(
+                {"error": "Skill already exists"},
+                status=409
+            )
 
-        # Save back as comma-separated string
-        profile.skills = ",".join(skills)
-        profile.save()
+        skills_list.append(skill_normalized)
 
-        return JsonResponse({"status": "ok"})
+    elif action == "remove":
+        if skill_normalized in skills_list:
+            skills_list.remove(skill_normalized)
 
-# ------------------- Dashboard : to load problems from database  -----------------------
+    else:
+        return JsonResponse({"error": "Invalid action"}, status=400)
 
-from .models import Problem
+    # Save back to DB (keep comma-separated format)
+    profile.skills = ", ".join(skills_list)
+    profile.save(update_fields=["skills"])
 
-@login_required
-def dashboard_view(request):
-    problems = Problem.objects.all()
-
-    return render(request, "dashboard.html", {
-        "problems": problems
-    })
-
-# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
-# from .models import Problem
-
-# @login_required
-# def problem_detail_view(request, problem_id):
-#     problem = Problem.objects.get(id=problem_id)
-
-#     return render(request, "problemPage.html", {
-#         "problem": problem
-#     })
-
-# ------------------- SUBMISSION LOGIC (THIS IS THE HEART ❤️) -----------------------
-
-from django.utils.timezone import now
-from .models import DailySubmission
-from django.db import IntegrityError
-from .models import ProblemSubmission
+    return JsonResponse({"success": True})
 
 # ----------------------- QUIZ ------------------------
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, JsonResponse
-from django.db.models import Q
-from django.contrib.auth.decorators import login_required
-import json
-from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
-from django.views.decorators.csrf import csrf_exempt
 
-
-
-# # @login_required
-# def inside_quiz(request):
-#     language_id = request.GET.get('lang')
-#     if not language_id:
-#         return HttpResponse("Language not provided", status=400)
-
-#     language = get_object_or_404(Language, id=language_id)
-
-#     # ✅ quizzes already solved correctly by the user
-#     solved_quiz_ids = UserMCQAttempt.objects.filter(
-#         user_id=request.user.id,
-#         is_correct=True
-#     ).values_list('quiz_id', flat=True)
-
-#     # ✅ fetch quizzes for this language, excluding solved ones
-#     quizzes = (
-#         Quiz.objects
-#         .select_related('question')
-#         .filter(language=language)
-#         .exclude(id__in=solved_quiz_ids)
-#         .order_by('?')[:10]
-#     )
-
-#     if not quizzes.exists():
-#         return HttpResponse("You have completed all questions 🎉")
-
-#     quiz_data = [
-#         {
-#             "quiz_id": quiz.id,
-#             "question": quiz.question.question_text,
-#             "options": [
-#                 quiz.question.option_a,
-#                 quiz.question.option_b,
-#                 quiz.question.option_c,
-#                 quiz.question.option_d,
-#             ]
-#         }
-#         for quiz in quizzes
-#     ]
-
-#     return render(request, 'insideQuiz.html', {
-#         "language": language,
-#         "quiz_data": json.dumps(quiz_data)
-#     })
-
-#     return render(request, 'inside_quiz.html', context)
 def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
 
-
-# @login_required
 @csrf_exempt
 def save_mcq_answer(request):
     if request.method == "POST":
@@ -521,9 +419,6 @@ def save_mcq_answer(request):
         return JsonResponse({"correct": is_correct})
 
 
-
-
-
 def get_quiz_questions(user, language, limit=10):
     attempted_wrong = UserMCQAttempt.objects.filter(
         user=user,
@@ -536,7 +431,6 @@ def get_quiz_questions(user, language, limit=10):
     ).distinct().order_by('?')[:limit]
 
     return quizzes
-
 
 # Quiz Methods 01.1
 
@@ -589,9 +483,6 @@ def quiz_home(request):
     }
 
     return render(request, "quiz.html", context)
-
-
-
 
 def inside_quiz(request):
     language_id = request.GET.get("lang")
@@ -664,22 +555,6 @@ def inside_quiz(request):
         "is_authenticated": request.user.is_authenticated
     })
 
-
-def start_quiz(request):
-    if request.method == "POST":
-        lang_id = request.POST.get('language')
-        return redirect(f'/insideQuiz?lang={lang_id}')
-
-
-
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
-import json
-
 def debugging_quiz(request):
     lang_id = request.GET.get("lang")
     if not lang_id:
@@ -751,11 +626,6 @@ def debugging_quiz(request):
         "is_authenticated": request.user.is_authenticated
     })
 
-
-
-
-from django.contrib.auth.decorators import login_required
-
 @login_required
 def quiz_summary(request):
     ids = request.GET.get("ids")
@@ -800,22 +670,6 @@ def quiz_summary(request):
         "summary": summary
     })
 
-
-
-def get_quiz_questions(user, language, limit=10):
-    attempted_wrong = UserMCQAttempt.objects.filter(
-        user=user,
-        is_correct=False
-    ).values_list('quiz_id', flat=True)
-
-    quizzes = Quiz.objects.filter(
-        Q(id__in=attempted_wrong) |
-        Q(language=language)
-    ).distinct().order_by('?')[:limit]
-
-    return quizzes
-
-
 def get_quizzes(user, language, quiz_type, limit=10):
     solved_correct = UserMCQAttempt.objects.filter(
         user=user,
@@ -845,84 +699,6 @@ def get_quizzes(user, language, quiz_type, limit=10):
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
 
-def problem_detail(request, problem_id):
-    problem = Problem.objects.get(id=problem_id)
-
-    example = problem.example              # OneToOne
-    testcases = problem.testcases.all()    # ForeignKey
-
-    context = {
-        "problem": problem,
-        "example": example,
-        "testcases": testcases,
-    }
-    return render(request, "problemPage.html", context)
-
-
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-
-@login_required
-@require_POST
-def update_skills(request):
-    profile = request.user.profile
-    skill = request.POST.get("skill", "").strip()
-    action = request.POST.get("action")
-
-    if not skill:
-        return JsonResponse({"error": "Skill cannot be empty"}, status=400)
-
-    # Normalize (case-insensitive handling)
-    skill_normalized = skill.lower()
-
-    # Convert existing skills to normalized list
-    skills_list = [
-        s.strip().lower()
-        for s in profile.skills.split(",")
-        if s.strip()
-    ]
-
-    if action == "add":
-        if skill_normalized in skills_list:
-            return JsonResponse(
-                {"error": "Skill already exists"},
-                status=409
-            )
-
-        skills_list.append(skill_normalized)
-
-    elif action == "remove":
-        if skill_normalized in skills_list:
-            skills_list.remove(skill_normalized)
-
-    else:
-        return JsonResponse({"error": "Invalid action"}, status=400)
-
-    # Save back to DB (keep comma-separated format)
-    profile.skills = ", ".join(skills_list)
-    profile.save(update_fields=["skills"])
-
-    return JsonResponse({"success": True})
-
-# @login_required
-# def problem_detail(request, problem_id):
-#     problem = get_object_or_404(Problem, id=problem_id)
-
-#     example = None
-#     try:
-#         example = problem.example
-#     except ExampleTestCase.DoesNotExist:
-#         example = None
-
-#     testcases = problem.testcases.all()
-
-#     context = {
-#         "problem": problem,
-#         "example": example,
-#         "testcases": testcases,
-#     }
-#     return render(request, "problemPage.html", context)
 @login_required
 def problem_detail(request, problem_id):
     problem = get_object_or_404(Problem, id=problem_id)
@@ -942,8 +718,6 @@ def problem_detail(request, problem_id):
         }
     }
     return render(request, "problemPage.html", context)
-
-from django.views.decorators.csrf import csrf_exempt
 
 
 @csrf_exempt
