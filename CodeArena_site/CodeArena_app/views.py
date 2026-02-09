@@ -233,6 +233,34 @@ def profile_view(request):
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
 
+# @login_required
+# def leaderboard_view(request):
+#     profiles = (
+#         UserProfile.objects
+#         .filter(points__gt=0)
+#         .select_related("user")
+#         .order_by("-points", "user__username")
+#     )
+
+#     ranked_profiles = []
+#     last_points = None
+#     rank = 0
+
+#     for index, profile in enumerate(profiles, start=1):
+#         if profile.points != last_points:
+#             rank = index
+#             last_points = profile.points
+#         profile.rank = rank
+#         ranked_profiles.append(profile)
+
+#     # 🔥 TOP 3 USERS
+#     top_users = ranked_profiles[:3]
+
+#     return render(request, "leaderboard.html", {
+#         "profiles": ranked_profiles,
+#         "top_users": top_users
+#     })
+
 
 from django.template.loader import render_to_string
 from django.http import JsonResponse
