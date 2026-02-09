@@ -18,15 +18,12 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
-
+from .models import ExampleTestCase
 
 # for Error page 
 
 def custom_404_view(request, exception):
     return render(request, "404.html", status=404)
-
-
-
 # ---------------- HOME ----------------
 
 def home_view(request):
@@ -316,18 +313,44 @@ def leaderboard_view(request):
 
 @login_required
 def edit_profile_view(request):
-    profile = UserProfile.objects.get(user=request.user)
+    user = request.user
+    profile = user.profile
 
     if request.method == "POST":
-        profile.full_name = request.POST.get("full_name")
-        profile.dob = request.POST.get("dob")
-        profile.skills = request.POST.get("skills")
-        profile.save()
+        new_username = request.POST.get("username")
+        
+        # Check if the new username is already taken by someone ELSE
+        if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+            return render(request, "edit_profile.html", {
+                "profile": profile, 
+                "user": user, 
+                "error": "This username is already taken by another user!"
+            })
 
+        # Update User fields
+        user.username = new_username
+        user.email = request.POST.get("email")
+        user.save()
+
+        # Update Profile fields
+        profile.full_name = request.POST.get("full_name")
+        profile.github = request.POST.get("github")
+        profile.linkedin = request.POST.get("linkedin")
+        profile.twitter = request.POST.get("twitter")
+        profile.location = request.POST.get("location")
+        profile.summary = request.POST.get("summary")
+        profile.education = request.POST.get("education")
+        profile.work_experience = request.POST.get("experience")
+        
+        if request.FILES.get("profile_img"):
+            profile.profile_img = request.FILES.get("profile_img")
+            
+        profile.save()
+        
+        # Redirect back to the profile page
         return redirect("profile")
 
-    return render(request, "edit_profile.html", {"profile": profile})
-
+    return render(request, "edit_profile.html", {"profile": profile, "user": user})
 # ---------------- SIGNAL ----------------
 
 # This guarantees profile creation even if admin creates user
@@ -364,18 +387,28 @@ def update_skills(request):
 
         return JsonResponse({"status": "ok"})
 
+# ------------------- Dashboard : to load problems from database  -----------------------
 
-
-# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
 from .models import Problem
 
 @login_required
-def problem_detail_view(request, problem_id):
-    problem = Problem.objects.get(id=problem_id)
+def dashboard_view(request):
+    problems = Problem.objects.all()
 
-    return render(request, "problemPage.html", {
-        "problem": problem
+    return render(request, "dashboard.html", {
+        "problems": problems
     })
+
+# ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
+# from .models import Problem
+
+# @login_required
+# def problem_detail_view(request, problem_id):
+#     problem = Problem.objects.get(id=problem_id)
+
+#     return render(request, "problemPage.html", {
+#         "problem": problem
+#     })
 
 # ------------------- SUBMISSION LOGIC (THIS IS THE HEART ❤️) -----------------------
 
@@ -383,6 +416,7 @@ from django.utils.timezone import now
 from .models import DailySubmission
 from django.db import IntegrityError
 from .models import ProblemSubmission
+
 
 @login_required
 def submit_solution(request, problem_id):
@@ -392,8 +426,10 @@ def submit_solution(request, problem_id):
     problem = get_object_or_404(Problem, id=problem_id)
     profile = request.user.profile
 
+
     # 1️⃣ Total submissions
     profile.total_submissions += 1
+
 
     # 2️⃣ Daily submissions
     today = now().date()
@@ -404,12 +440,14 @@ def submit_solution(request, problem_id):
     daily.count += 1
     daily.save()
 
+
     # 3️⃣ Prevent duplicate solving
     solved, created = ProblemSubmission.objects.get_or_create(
         user=request.user,
         problem=problem,
         defaults={"is_correct": True}
     )
+
 
     if not created:
         # ❌ Already solved before → no points
@@ -437,7 +475,6 @@ def submit_solution(request, problem_id):
         "status": "accepted",
         "points_added": points
     })
-
     
 # ----------------------- QUIZ ------------------------
 from django.shortcuts import render, get_object_or_404, redirect
@@ -959,18 +996,18 @@ PROBLEM_POINTS = {
 
 
 
-def problem_detail(request, problem_id):
-    problem = Problem.objects.get(id=problem_id)
+# def problem_detail(request, problem_id):
+#     problem = Problem.objects.get(id=problem_id)
 
-    example = problem.example              # OneToOne
-    testcases = problem.testcases.all()    # ForeignKey
+#     example = problem.example              # OneToOne
+#     testcases = problem.testcases.all()    # ForeignKey
 
-    context = {
-        "problem": problem,
-        "example": example,
-        "testcases": testcases,
-    }
-    return render(request, "problemPage.html", context)
+#     context = {
+#         "problem": problem,
+#         "example": example,
+#         "testcases": testcases,
+#     }
+#     return render(request, "problemPage.html", context)
 
 
 from django.http import JsonResponse
@@ -1018,3 +1055,86 @@ def update_skills(request):
     profile.save(update_fields=["skills"])
 
     return JsonResponse({"success": True})
+
+# @login_required
+# def problem_detail(request, problem_id):
+#     problem = get_object_or_404(Problem, id=problem_id)
+
+#     example = None
+#     try:
+#         example = problem.example
+#     except ExampleTestCase.DoesNotExist:
+#         example = None
+
+#     testcases = problem.testcases.all()
+
+#     context = {
+#         "problem": problem,
+#         "example": example,
+#         "testcases": testcases,
+#     }
+#     return render(request, "problemPage.html", context)
+@login_required
+def problem_detail(request, problem_id):
+    problem = get_object_or_404(Problem, id=problem_id)
+
+    example = getattr(problem, "example", None)   # safe OneToOne
+    testcases = problem.testcases.all()            # safe FK
+
+    context = {
+        "problem": problem,
+        "example": example,
+        "testcases": testcases,
+        # Pass starter code from views.py
+        "starter_code": {
+            "java": problem.starter_code_java,
+            "python": problem.starter_code_python,
+            "cpp": problem.starter_code_cpp,
+        }
+    }
+    return render(request, "problemPage.html", context)
+
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+@login_required
+def submit_solution(request, problem_id):
+    from .judge import judge_code
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    code = data.get("code")
+    language = data.get("language")
+
+    if not code or not language:
+        return JsonResponse({"error": "Missing code or language"}, status=400)
+
+    problem = get_object_or_404(Problem, id=problem_id)
+    testcases = problem.testcases.all()
+
+    result = judge_code(language, code, testcases)
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.total_submissions += 1
+    profile.save()
+
+    response = {
+    "verdict": result["verdict"]
+    }
+
+    # ✅ ONLY show time/memory if Accepted
+    if result["verdict"] == "Accepted":
+        response["time_ms"] = result["time_ms"]
+        response["memory_mb"] = result["memory_mb"]
+    else:
+        response["failed_testcase"] = result.get("failed_testcase")
+        response["error"] = result.get("error")
+
+    return JsonResponse(response)
+

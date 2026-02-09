@@ -27,7 +27,13 @@ class UserProfile(models.Model):
     # Social Links
     github = models.URLField(max_length=200, blank=True)
     linkedin = models.URLField(max_length=200, blank=True)
-    
+
+    # Add these inside class UserProfile:
+    location = models.CharField(max_length=100, blank=True)
+    twitter = models.URLField(max_length=200, blank=True)
+    education = models.CharField(max_length=255, blank=True)
+    work_experience = models.TextField(blank=True)
+        
     # Stats 
     points = models.IntegerField(default=0)
     rank = models.IntegerField(default=0)
@@ -190,6 +196,12 @@ class Problem(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # starter code for code editor
+    starter_code_java = models.TextField(blank=True)
+    starter_code_python = models.TextField(blank=True)
+    starter_code_cpp = models.TextField(blank=True)
+
+
     def __str__(self):
         return self.title
     
@@ -227,9 +239,8 @@ class TestCase(models.Model):
 
     def __str__(self):
         return f"Testcase for {self.problem.title}"
-
-
-
+    
+    
 class ProblemSubmission(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)

@@ -353,6 +353,39 @@
             color: var(--text-muted);
             cursor: not-allowed;
         }
+/* 1. Fix the Social Icons size and appearance */
+.social-icon-link {
+    font-size: 1.5rem !important; /* Forces the 'larger' size */
+    transition: all 0.3s ease;
+    display: inline-flex;
+    opacity: 0.8;
+    text-shadow: none !important; /* Strictly removes glow */
+    text-decoration: none;
+}
+
+.social-icon-link:hover {
+    transform: translateY(-2px);
+    opacity: 1;
+}
+
+/* 2. Style the Education text correctly */
+.education-text {
+    font-size: 0.95rem; 
+    color: #4fd1c5; /* Professional Mint/Teal color */
+    text-shadow: 0 0 2px rgba(79, 209, 197, 0.1); /* Very subtle depth */
+    margin-bottom: 0.5rem;
+}
+
+/* 3. Clean up the hover-glow class (used for icons) */
+.hover-glow:hover {
+    text-shadow: none !important;
+    transform: scale(1.1);
+}
+
+/* 4. Custom color for the Work Experience icon */
+.text-purple {
+    color: #8f94fb !important;
+}
     </style>
 </head>
 <body>
@@ -360,7 +393,6 @@
     <form style="display:none;">
         {% csrf_token %}
     </form>
-
 
 <div class="bg-radial">
     
@@ -374,7 +406,7 @@
             <div class="collapse navbar-collapse" id="mobileMenu">
                 <ul class="navbar-nav mt-3">
                     <li class="nav-item"><a class="nav-link-custom" href="{%url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
-                    <li class="nav-item"><a class="nav-link-custom active" href="#"><i class="bi bi-person"></i> Edit Profile</a></li>
+                    <li class="nav-item"><a class="nav-link-custom active" href="{%url 'edit_profile' %}"><i class="bi bi-person"></i> Edit Profile</a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
                     <hr class="border-secondary opacity-25">
@@ -398,7 +430,7 @@
 
         <nav class="mt-4 flex-grow-1 px-2">
             <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
-            <a href="#" class="nav-link-custom"><i class="bi bi-person"></i> Edit Profile</a>
+            <a href="{%url 'edit_profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Edit Profile</a>
             <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
             <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
         </nav>
@@ -426,14 +458,42 @@
                         <button class="rank-pulse">🏆 Rank #{{profile.rank}}</button>
                         
                         <h1 class="display-4 fw-bold mb-2 text-white" style="letter-spacing: -1px;">{{user.username}}</h1>
+                        
                         {% if profile.summary %}
                         <p class="h5 mb-4" style="color: var(--text-muted); font-weight: 300;">
                             {{profile.summary}}
                         </p> 
                         {% endif %}
-                        <div class="d-flex flex-wrap gap-4 mt-2" style="color: var(--text-muted); font-size: 0.95rem;">
-                            <span><i class=" me-2 text-neon-cyan"></i>✉️ {{user.email}}</span>
-                            <span><i class=" me-2 text-neon-cyan"></i>📅 Member since {{ member_since|date:"M Y" }}</span>
+
+                        <div class="d-flex flex-column gap-2">
+                            
+                            <div class="d-flex flex-wrap align-items-center gap-4" style="color: var(--text-muted); font-size: 0.95rem;">
+                                <span><i class="bi bi-envelope me-2 text-neon-cyan"></i>{{user.email}}</span>
+                                <span><i class="bi bi-calendar3 me-2 text-neon-cyan"></i>Member since {{ member_since|date:"M Y" }}</span>
+                                
+                                <div class="d-flex gap-3 align-items-center ms-md-2">
+                                    {% if profile.github %}
+                                        <a href="{{ profile.github }}" target="_blank" class="text-white social-icon-link"><i class="bi bi-github"></i></a>
+                                    {% endif %}
+                                    {% if profile.linkedin %}
+                                        <a href="{{ profile.linkedin }}" target="_blank" class="text-primary social-icon-link"><i class="bi bi-linkedin"></i></a>
+                                    {% endif %}
+                                    {% if profile.twitter %}
+                                        <a href="{{ profile.twitter }}" target="_blank" class="text-white social-icon-link"><i class="bi bi-twitter-x"></i></a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if profile.education %}
+                            <div class="education-text">
+                                <i class="bi bi-mortarboard me-2"></i>{{ profile.education }}
+                            </div>
+                            {% endif %}
+                            {% if profile.work_experience %}
+                            <div style="font-size: 0.95rem; color: var(--text-muted);">
+                                <i class="bi bi-briefcase me-2 text-purple"></i>{{ profile.work_experience }}
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
