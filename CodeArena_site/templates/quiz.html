@@ -13,6 +13,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+
+        .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
         /* --- THEME VARIABLES --- */
         :root {
             --primary-glow: #20c997;
@@ -263,31 +272,38 @@
     <div class="bg-radial">
 
         <nav class="navbar navbar-expand-lg navbar-glass d-lg-none sticky-top">
-    <div class="container-fluid">
-        <a class="navbar-brand-custom" href="#">CodeArena</a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
-            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mobileMenu">
-            <ul class="navbar-nav mt-3">
-                <li class="nav-item"><a class="nav-link-custom" href="{% url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
-                <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a></li>
-                <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
-                <li class="nav-item"><a class="nav-link-custom" href="{% url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
-                <hr class="border-secondary opacity-25"> 
-                <li class="nav-item d-flex align-items-center gap-3 py-2 px-3">
-                    <div class="avatar-circle">
-                        {{ user.username|slice:":2"|upper }}
-                    </div>
-                    <div>
-                        <div class="fw-bold text-white">{{ user.username }}</div>
-                        <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+            <div class="container-fluid">
+                <a class="navbar-brand-custom" href="#">CodeArena</a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#mobileMenu">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mobileMenu">
+                    <ul class="navbar-nav mt-3">
+                        </li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i
+                                    class="bi bi-person"></i> Profile</a>
+                        </li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i>
+                                Leaderboard</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-gear"></i> Settings</a>
+                        </li>
+                        <hr class="border-secondary opacity-25">
+                        <li class="nav-item d-flex align-items-center gap-3 py-2 px-3">
+                            <div class="avatar-circle" style="width:35px; height:35px; font-size: 0.8rem;">JD</div>
+                            <div>
+                                <div class="fw-bold text-white small">Demo User</div>
+                                <div class="text-cyan" style="font-size: 0.7rem;">Rank #001</div>
+                            </div>
+                        </li>
+                        <li class="nav-item mt-2 px-3"><a href="#"
+                                class="btn btn-outline-danger btn-sm w-100">Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
        <aside class="sidebar d-none d-lg-flex">
     <div class="p-4 border-bottom border-white border-opacity-10">
@@ -380,10 +396,6 @@
                         <div class="col-lg-6 border-end-lg">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h5 class="fw-bold mb-0 text-white">MCQ Trend</h5>
-                                <select class="form-select form-select-sm form-select-dark w-auto">
-                                    <option>Last 7 Days</option>
-                                    <option>Last Month</option>
-                                </select>
                             </div>
                             <div class="chart-container">
                                 <canvas id="mcqChart"></canvas>
@@ -392,11 +404,83 @@
 
                         <div class="col-lg-6">
                             <div class="d-flex justify-content-between align-items-center mb-4 ps-lg-3">
-                                <h5 class="fw-bold mb-0 text-white">Debugging Stats</h5>
+                                <h5 class="fw-bold mb-0 text-white">MCQ Performance</h5>
+                                <div class="d-flex flex-wrap gap-3 mt-2 small ps-lg-3">
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="legend-dot bg-success"></span>
+        <span class="text-secondary">1st Attempt</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="legend-dot bg-info"></span>
+        <span class="text-secondary">2nd Attempt</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="legend-dot bg-warning"></span>
+        <span class="text-secondary">3rd+ Attempt</span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="legend-dot bg-danger"></span>
+        <span class="text-secondary">Wrong</span>
+    </div>
+
+</div>
+
                                 <i class="bi bi-three-dots text-secondary"></i>
                             </div>
-                            <div class="chart-container d-flex justify-content-center ps-lg-3">
-                                <canvas id="debugChart"></canvas>
+
+                            <div class="row ps-lg-3">
+
+                                <!-- Doughnut -->
+                                <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                    <div class="position-relative" style="height:260px; width:260px;">
+                                        <canvas id="debugChart"></canvas>
+
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                            <h2 class="fw-bold text-cyan mb-0" id="debugTotal">0</h2>
+                                            <small class="text-secondary">Total</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stat Cards -->
+                                <div class="col-md-6">
+                                    <div class="row g-3">
+
+                                        <div class="col-6">
+                                            <div class="stat-box success">
+                                                <h4 id="firstStat">0</h4>
+                                                <small>1st Attempt</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="stat-box info">
+                                                <h4 id="secondStat">0</h4>
+                                                <small>2nd Attempt</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="stat-box warning">
+                                                <h4 id="thirdStat">0</h4>
+                                                <small>3rd+ Attempt</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="stat-box danger">
+                                                <h4 id="wrongStat">0</h4>
+                                                <small>Wrong</small>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -468,131 +552,98 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // ================= SAFE DATA PARSING =================
+        const mcqLabels = JSON.parse('{{ mcq_labels|escapejs }}');
+        const mcqPoints = JSON.parse('{{ mcq_points|escapejs }}');
 
-        function startQuiz() {
-            const lang = document.getElementById('languageSelect').value;
-
-            if (!lang) {
-                alert('Please select a language');
-                return;
-            }
-
-            window.location.href = `/insideQuiz?lang=${lang}`;
-        }
-
-        // ================= CHART DEFAULTS =================
-        Chart.defaults.color = '#b0b0cc';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-        Chart.defaults.font.family = "'Inter', sans-serif";
-
-        // ================= CHART DEFAULTS =================
-Chart.defaults.color = '#b0b0cc';
-Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-Chart.defaults.font.family = "'Inter', sans-serif";
+        const firstCorrect = {{ first_correct|default:0 }};
+        const secondCorrect = {{ second_correct|default:0 }};
+        const thirdPlusCorrect = {{ third_plus_correct|default:0 }};
+        const wrongAttempts = {{ wrong_attempts|default:0 }};
 
 
-// ================= SAFE DATA PARSING =================
-const mcqLabels = JSON.parse('{{ mcq_labels|escapejs }}');
-const mcqPoints = JSON.parse('{{ mcq_points|escapejs }}');
+        // ================= MCQ LINE CHART =================
+        const ctxMcq = document.getElementById('mcqChart').getContext('2d');
 
-const firstCorrect = {{ first_correct|default:0 }};
-const secondCorrect = {{ second_correct|default:0 }};
-const thirdPlusCorrect = {{ third_plus_correct|default:0 }};
-const wrongAttempts = {{ wrong_attempts|default:0 }};
+        let gradientMcq = ctxMcq.createLinearGradient(0, 0, 0, 400);
+        gradientMcq.addColorStop(0, 'rgba(32, 201, 151, 0.4)');
+        gradientMcq.addColorStop(1, 'rgba(32, 201, 151, 0.0)');
 
-
-// ================= MCQ LINE CHART =================
-const ctxMcq = document.getElementById('mcqChart').getContext('2d');
-
-let gradientMcq = ctxMcq.createLinearGradient(0, 0, 0, 400);
-gradientMcq.addColorStop(0, 'rgba(32, 201, 151, 0.4)');
-gradientMcq.addColorStop(1, 'rgba(32, 201, 151, 0.0)');
-
-new Chart(ctxMcq, {
-    type: 'line',
-    data: {
-        labels: mcqLabels,
-        datasets: [{
-            label: 'Daily Points',
-            data: mcqPoints,
-            borderColor: '#20c997',
-            backgroundColor: gradientMcq,
-            borderWidth: 2,
-            pointBackgroundColor: '#050505',
-            pointBorderColor: '#20c997',
-            pointBorderWidth: 2,
-            pointHoverBackgroundColor: '#20c997',
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(255,255,255,0.05)' }
+        new Chart(ctxMcq, {
+            type: 'line',
+            data: {
+                labels: mcqLabels,
+                datasets: [{
+                    label: 'Daily Points',
+                    data: mcqPoints,
+                    borderColor: '#20c997',
+                    backgroundColor: gradientMcq,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            x: {
-                grid: { display: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
             }
-        }
-    }
-});
+        });
 
+        // ================= DEBUG DOUGHNUT =================
+        // ================= DEBUG DOUGHNUT =================
+        const ctxDebug = document.getElementById('debugChart').getContext('2d');
 
-// ================= DEBUG DOUGHNUT =================
-const ctxDebug = document.getElementById('debugChart').getContext('2d');
+        const debugData = [
+            {{ debug_first|default:0 }},
+            {{ debug_second |default:0 }},
+            {{ debug_third_plus |default:0 }},
+            {{ debug_wrong |default:0 }}
+        ];
 
-new Chart(ctxDebug, {
-    type: 'doughnut',
-    data: {
-        labels: [
-            'First Attempt Correct',
-            'Second Attempt Correct',
-            'Third+ Attempt Correct',
-            'Wrong Attempts'
-        ],
-        datasets: [{
-            data: [
-                firstCorrect,
-                secondCorrect,
-                thirdPlusCorrect,
-                wrongAttempts
-            ],
-            backgroundColor: [
-                '#4e54c8',
-                '#20c997',
-                '#ffd700',
-                '#ff0055'
-            ],
-            borderColor: '#050505',
-            borderWidth: 4,
-            hoverOffset: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'right',
-                labels: {
-                    boxWidth: 12,
-                    usePointStyle: true,
-                    padding: 20
+        const totalAttempts = debugData.reduce((a, b) => a + b, 0);
+
+        // Update center number
+        document.getElementById("debugTotal").innerText = totalAttempts;
+        document.getElementById("firstStat").innerText = debugData[0];
+        document.getElementById("secondStat").innerText = debugData[1];
+        document.getElementById("thirdStat").innerText = debugData[2];
+        document.getElementById("wrongStat").innerText = debugData[3];
+
+        new Chart(ctxDebug, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'First Attempt',
+                    'Second Attempt',
+                    'Third+ Attempt',
+                    'Wrong'
+                ],
+                datasets: [{
+                    data: debugData,
+                    backgroundColor: [
+                        '#22c55e',
+                        '#0dcaf0',
+                        '#facc15',
+                        '#ef4444'
+                    ],
+                    borderColor: '#050505',
+                    borderWidth: 6,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 }
             }
-        },
-        cutout: '75%'
-    }
-});
-
+        });
     </script>
+
     <script>
         function startDebugQuiz() {
             const lang = document.getElementById("debugLangSelect").value;

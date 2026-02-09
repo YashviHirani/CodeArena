@@ -418,6 +418,13 @@
                         {% endif %}
                     </div>
 
+                    <div class="d-flex align-items-center mt-4 gap-3">
+                        <button class="btn btn-glow" onclick="runSim()">
+                            <i class="bi bi-play-fill me-1"></i> Run Test
+                        </button>
+                        <div id="testResult" class="small"></div>
+                    </div>
+
                 </div>
 
                 <div class="plugin-card futuristic">
@@ -433,7 +440,8 @@
                         id="codeEditor"
                         class="form-control form-control-dark mb-4"
                         rows="12"
-                        style="font-size: 14px; line-height: 1.5;">{{ starter_code.java|safe }}</textarea>
+                        style="font-size: 14px; line-height: 1.5;"
+                    >{{ starter_code.java|escapejs }}</textarea>
                     <small class="text-warning">
                         Java submissions must use <code>class Main</code>
                     </small>
@@ -528,6 +536,7 @@
         const starterCode = {
             java: `{{ starter_code.java|escapejs }}`,
             python: `{{ starter_code.python|escapejs }}`,
+            cpp: `{{ starter_code.cpp|escapejs }}`
         };
 
         function changeLanguage() {

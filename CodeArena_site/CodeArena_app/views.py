@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import UserProfile, ExampleTestCase, Problem, Topic, DailySubmission, ProblemSubmission
+from .models import UserProfile, Problem, Topic, DailySubmission, ProblemSubmission
 from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models.signals import post_save
@@ -11,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime, now  # Required for submit_solution
 from datetime import date, datetime, timedelta
 import json
+
+from .bst import ProblemBST
 
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 
@@ -124,7 +126,8 @@ def complete_profile(request):
         profile.profile_img = request.FILES.get("profile_img") or profile.profile_img
         profile.full_name = request.POST.get("full_name", "")
         profile.summary = request.POST.get("summary", "")
-        profile.dob = request.POST.get("dob") or None
+        dob = request.POST.get("dob")
+        profile.dob = datetime.strptime(dob, "%Y-%m-%d").date() if dob else None
         profile.github = request.POST.get("github", "")
         profile.linkedin = request.POST.get("linkedin", "")
         profile.skills = request.POST.get("skills", "")
@@ -144,32 +147,78 @@ from django.db.models import Q
 from django.template.loader import render_to_string
 from .models import Problem, Topic
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.http import JsonResponse
+
+from .models import ProblemSubmission
+
+from django.db.models import Count
+from .models import Problem, ProblemSubmission, UserProfile
+
 @login_required
 def dashboard_view(request):
-
     search_query = request.GET.get("q", "").strip()
     difficulty = request.GET.get("difficulty", "all")
     topic_id = request.GET.get("topic", "all")
 
-    problems = Problem.objects.select_related("topic").all()
+    problems_queryset = Problem.objects.select_related("topic")
 
-    # 🔍 SEARCH FILTER
+    # ---------------- SEARCH ----------------
     if search_query:
-        problems = problems.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(topic__name__icontains=search_query)
-        )
+        bst = ProblemBST()
+        for p in problems_queryset:
+            bst.insert(p)
+        problems = bst.search_partial(search_query)
+    else:
+        problems = list(problems_queryset)
 
-    # 🎯 DIFFICULTY FILTER
+    # ---------------- FILTERS ----------------
     if difficulty != "all":
-        problems = problems.filter(difficulty=difficulty)
+        problems = [p for p in problems if p.difficulty == difficulty]
 
-    # 📚 TOPIC FILTER
     if topic_id != "all":
-        problems = problems.filter(topic_id=topic_id)
+        problems = [p for p in problems if str(p.topic_id) == topic_id]
 
-    # ✅ AJAX RESPONSE
+    # ---------------- STATUS (Solved / Wrong / Not Attempted) ----------------
+    submissions = ProblemSubmission.objects.filter(
+        user=request.user,
+        problem__in=problems
+    )
+
+    submission_map = {
+        s.problem_id: s.is_correct
+        for s in submissions
+    }
+
+    for problem in problems:
+        if problem.id in submission_map:
+            problem.status = "solved" if submission_map[problem.id] else "wrong"
+        else:
+            problem.status = "not_attempted"
+
+    # ---------------- DASHBOARD STATS ----------------
+    total_problems = Problem.objects.count()
+
+    solved_count = ProblemSubmission.objects.filter(
+        user=request.user,
+        is_correct=True
+    ).count()
+
+    # Rank calculation (based on points)
+    ranked_profiles = (
+        UserProfile.objects
+        .filter(points__gt=0)
+        .order_by("-points")
+        .values_list("user_id", flat=True)
+    )
+
+    try:
+        rank = list(ranked_profiles).index(request.user.id) + 1
+    except ValueError:
+        rank = "—"
+
+    # ---------------- AJAX ----------------
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string(
             "problem_table.html",
@@ -181,6 +230,9 @@ def dashboard_view(request):
     return render(request, "dashboard.html", {
         "problems": problems,
         "topics": Topic.objects.all(),
+        "total_problems": total_problems,
+        "solved_count": solved_count,
+        "rank": rank,
     })
 
 
@@ -396,27 +448,41 @@ def start_quiz(request):
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 @csrf_exempt
+@login_required
 def save_mcq_answer(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-        quiz_id = data.get("quiz_id")
-        selected_option = data.get("selected_option")
+    data = json.loads(request.body)
+    quiz_id = data.get("quiz_id")
+    selected_option = data.get("selected_option")
 
-        quiz = get_object_or_404(Quiz, id=quiz_id)
-        is_correct = selected_option == quiz.question.correct_option
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    is_correct = selected_option == quiz.question.correct_option
 
-        UserMCQAttempt.objects.update_or_create(
-            user=request.user,
-            quiz=quiz,
-            defaults={
-                "selected_option": selected_option,
-                "is_correct": is_correct,
-                "completed": is_correct
-            }
-        )
+    attempt, created = UserMCQAttempt.objects.get_or_create(
+        user=request.user,
+        quiz=quiz,
+        defaults={
+            "selected_option": selected_option,
+            "is_correct": is_correct,
+            "completed": is_correct,
+            "attempts": 1,
+        }
+    )
 
-        return JsonResponse({"correct": is_correct})
+    if not created:
+        attempt.attempts += 1
+        attempt.selected_option = selected_option
+        attempt.is_correct = is_correct
+        attempt.completed = is_correct
+        attempt.save()
+
+    return JsonResponse({
+        "correct": is_correct,
+        "attempts": attempt.attempts,
+        "quiz_type": quiz.quiz_type,
+    })
 
 
 def get_quiz_questions(user, language, limit=10):
@@ -466,19 +532,34 @@ def quiz_home(request):
     # ================= DEBUGGING ATTEMPT BREAKDOWN =================
     attempts = UserMCQAttempt.objects.filter(user=user)
 
-    first_correct = attempts.filter(is_correct=True, attempts=1).count()
-    second_correct = attempts.filter(is_correct=True, attempts=2).count()
-    third_plus_correct = attempts.filter(is_correct=True, attempts__gte=3).count()
+    def calc_stats(qs):
+        return {
+            "first": qs.filter(is_correct=True, attempts=1).count(),
+            "second": qs.filter(is_correct=True, attempts=2).count(),
+            "third_plus": qs.filter(is_correct=True, attempts__gte=3).count(),
+            "wrong": qs.filter(is_correct=False).count(),
+        }
 
-    wrong_attempts = attempts.filter(is_correct=False).count()
+    mcq_stats = calc_stats(attempts.filter(quiz__quiz_type="MCQ"))
+    debug_stats = calc_stats(attempts.filter(quiz__quiz_type="DEBUG"))
+
 
     context = {
         "mcq_labels": json.dumps(mcq_labels),
         "mcq_points": json.dumps(mcq_points),
-        "first_correct": first_correct,
-        "second_correct": second_correct,
-        "third_plus_correct": third_plus_correct,
-        "wrong_attempts": wrong_attempts,
+
+        # MCQ
+        "mcq_first": mcq_stats["first"],
+        "mcq_second": mcq_stats["second"],
+        "mcq_third_plus": mcq_stats["third_plus"],
+        "mcq_wrong": mcq_stats["wrong"],
+
+        # DEBUG
+        "debug_first": debug_stats["first"],
+        "debug_second": debug_stats["second"],
+        "debug_third_plus": debug_stats["third_plus"],
+        "debug_wrong": debug_stats["wrong"],
+
         "languages": Language.objects.all(),
     }
 
@@ -533,7 +614,11 @@ def inside_quiz(request):
         ).order_by("?")[:10]
 
     if not quizzes:
-        return HttpResponse("No questions available")
+        return render(request, "quiz_completed.html", {
+            "message": "All MCQ questions solved 🎯",
+            "sub_message": "Sorry — there are no more MCQ questions available right now. Great job completing them all!"
+        })
+
 
     quiz_data = [
         {
@@ -554,6 +639,10 @@ def inside_quiz(request):
         "quiz_data": json.dumps(quiz_data),
         "is_authenticated": request.user.is_authenticated
     })
+
+def quiz_completed(request):
+    return render(request, "quiz_completed.html")
+
 
 def debugging_quiz(request):
     lang_id = request.GET.get("lang")
@@ -603,7 +692,12 @@ def debugging_quiz(request):
         ).order_by("?")[:10]
 
     if not quizzes:
-        return HttpResponse("All Debugging questions solved 🎉")
+        return render(request, "quiz_completed.html", {
+            "message": "All Debugging questions solved 🎉",
+            "sub_message": "Sorry — you’ve completed all available debugging challenges. New ones coming soon!"
+        })
+
+
 
     quiz_data = []
     for quiz in quizzes:
@@ -611,14 +705,16 @@ def debugging_quiz(request):
         quiz_data.append({
             "quiz_id": quiz.id,
             "question": q.question_text,
+            "code_snippet": q.code_snippet,   # 👈 ADD THIS
             "options": [
                 q.option_a,
                 q.option_b,
                 q.option_c,
                 q.option_d,
             ],
-            "correct": q.correct_option,  # used for UI highlight
+            "correct": q.correct_option,
         })
+
 
     return render(request, "DebuggingQuiz.html", {
         "quiz_data": json.dumps(quiz_data),
@@ -653,6 +749,8 @@ def quiz_summary(request):
     for att in attempts:
         q = att.quiz.question
         summary.append({
+            "code_snippet": getattr(q, "code_snippet", ""),   # safe access
+            "quiz_type": att.quiz.quiz_type,
             "question": q.question_text,
             "options": {
                 "A": q.option_a,
@@ -756,22 +854,24 @@ def submit_solution(request, problem_id):
     daily.count += 1
     daily.save()
 
-    # 4️⃣ HANDLE SUCCESSFUL VERDICT (Your Points & Marking Logic)
+    # 4️⃣ HANDLE VERDICT
     response = {"verdict": result["verdict"]}
+
+    submission, created = ProblemSubmission.objects.get_or_create(
+        user=request.user,
+        problem=problem,
+        defaults={"is_correct": False}
+    )
 
     if result["verdict"] == "Accepted":
         response["time_ms"] = result["time_ms"]
         response["memory_mb"] = result["memory_mb"]
 
-        # Prevent duplicate solving points/marking
-        solved, created = ProblemSubmission.objects.get_or_create(
-            user=request.user,
-            problem=problem,
-            defaults={"is_correct": True}
-        )
+        # If not already marked correct
+        if not submission.is_correct:
+            submission.is_correct = True
+            submission.save(update_fields=["is_correct"])
 
-        if created:
-            # First time solving: Add points and update counters
             points = PROBLEM_POINTS.get(problem.difficulty, 10)
             profile.points += points
 
@@ -781,17 +881,21 @@ def submit_solution(request, problem_id):
                 profile.medium_solved += 1
             else:
                 profile.hard_solved += 1
-            
+
             response["points_added"] = points
         else:
-            response["status"] = "already_solved"
             response["points_added"] = 0
+            response["status"] = "already_solved"
+
     else:
-        # Failed submission logic
+        # If failed attempt → ensure submission exists but not correct
+        if created:
+            submission.is_correct = False
+            submission.save(update_fields=["is_correct"])
+
         response["failed_testcase"] = result.get("failed_testcase")
         response["error"] = result.get("error")
 
-    # Final save for the profile
     profile.save()
 
     return JsonResponse(response)

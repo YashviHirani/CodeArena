@@ -2,8 +2,15 @@
 <tr>
 
     <td class="ps-4">
+        {% if problem.status == "solved" %}
+        <i class="bi bi-check-circle-fill text-success"></i>
+        {% elif problem.status == "wrong" %}
+        <i class="bi bi-x-circle-fill text-danger"></i>
+        {% else %}
         <i class="bi bi-circle text-secondary opacity-50"></i>
+        {% endif %}
     </td>
+
 
     <td>
         <div class="fw-bold text-white">{{ problem.title }}</div>
