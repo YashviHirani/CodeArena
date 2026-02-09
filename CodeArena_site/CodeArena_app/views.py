@@ -585,7 +585,11 @@ def inside_quiz(request):
         ).order_by("?")[:10]
 
     if not quizzes:
-        return HttpResponse("No questions available")
+        return render(request, "quiz_completed.html", {
+            "message": "All MCQ questions solved 🎯",
+            "sub_message": "Sorry — there are no more MCQ questions available right now. Great job completing them all!"
+        })
+
 
     quiz_data = [
         {
@@ -606,6 +610,10 @@ def inside_quiz(request):
         "quiz_data": json.dumps(quiz_data),
         "is_authenticated": request.user.is_authenticated
     })
+
+def quiz_completed(request):
+    return render(request, "quiz_completed.html")
+
 
 def debugging_quiz(request):
     lang_id = request.GET.get("lang")
@@ -655,7 +663,12 @@ def debugging_quiz(request):
         ).order_by("?")[:10]
 
     if not quizzes:
-        return HttpResponse("All Debugging questions solved 🎉")
+        return render(request, "quiz_completed.html", {
+            "message": "All Debugging questions solved 🎉",
+            "sub_message": "Sorry — you’ve completed all available debugging challenges. New ones coming soon!"
+        })
+
+
 
     quiz_data = []
     for quiz in quizzes:

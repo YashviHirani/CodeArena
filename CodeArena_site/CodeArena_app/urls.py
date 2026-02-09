@@ -42,6 +42,8 @@ urlpatterns = [
 
     path('quiz/save-answer/', views.save_mcq_answer, name='save_mcq_answer'), 
     path("quiz/summary/", views.quiz_summary, name="quiz_summary"),
+    path("quiz/completed/", views.quiz_completed, name="quiz_completed"),
+
 
     path("complete-profile/", views.complete_profile, name="complete_profile"),
     
