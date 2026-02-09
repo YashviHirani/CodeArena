@@ -245,7 +245,7 @@ def leaderboard_view(request):
 
     ranked_global = []
     last_points = None
-    rank = 0
+    rank = 0 
 
     for index, profile in enumerate(global_profiles, start=1):
         if profile.points != last_points:
@@ -714,7 +714,6 @@ def problem_detail(request, problem_id):
         "starter_code": {
             "java": problem.starter_code_java,
             "python": problem.starter_code_python,
-            "cpp": problem.starter_code_cpp,
         }
     }
     return render(request, "problemPage.html", context)

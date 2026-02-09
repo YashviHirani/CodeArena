@@ -199,7 +199,6 @@ class Problem(models.Model):
     # starter code for code editor
     starter_code_java = models.TextField(blank=True)
     starter_code_python = models.TextField(blank=True)
-    starter_code_cpp = models.TextField(blank=True)
 
 
     def __str__(self):

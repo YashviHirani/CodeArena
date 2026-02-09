@@ -43,55 +43,75 @@
         }
 
         /* --- NAVBAR & SIDEBAR --- */
-        .navbar {
-            background-color: #0f0f1a;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
+        /* --- NAVBAR & SIDEBAR --- */
+.navbar {
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
 
-        .navbar-brand {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+.navbar-brand-custom {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #20c997, #8f94fb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
+}
 
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(15, 15, 26, 0.8);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 1050;
-        }
+.sidebar {
+    width: 280px;
+    background: rgba(15, 15, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    display: flex; flex-direction: column;
+    z-index: 1050;
+}
 
-        .nav-link-custom {
-            padding: 12px 20px;
-            margin: 4px 15px;
-            border-radius: 8px;
-            color: #cfcfe6;
+.nav-link-custom {
+    padding: 12px 20px;
+    margin: 4px 15px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.75);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+    background: linear-gradient(90deg, rgba(32, 201, 151, 0.15), rgba(78, 84, 200, 0.15));
+    color: #ffffff;
+    border-left: 3px solid #20c997;
+    text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
+}
+
+/* Avatar Animation */
+@keyframes borderFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+ .avatar-circle {
+            width: 45px;
+            height: 45px;
+            background: var(--glow-gradient);
+            background-size: 300%;
+            animation: borderFlow 4s infinite linear;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .nav-link-custom:hover,
-        .nav-link-custom.active {
-            background: linear-gradient(90deg, rgba(32, 201, 151, 0.2), rgba(78, 84, 200, 0.2));
-            color: #00ffff;
-            text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
-            border-left: 3px solid #00ffff;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-family: sans-serif;
         }
 
         .text-cyan {
@@ -108,20 +128,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        .avatar-circle {
-            width: 45px;
-            height: 45px;
-            background: var(--glow-gradient);
-            background-size: 300%;
-            animation: borderFlow 4s infinite linear;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-family: sans-serif;
-        }
+       
 
         /* --- LAYOUT --- */
         .main-content {
@@ -405,19 +412,26 @@
             </button>
             <div class="collapse navbar-collapse" id="mobileMenu">
                 <ul class="navbar-nav mt-3">
-                    <li class="nav-item"><a class="nav-link-custom" href="{%url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
-                    <li class="nav-item"><a class="nav-link-custom active" href="{%url 'edit_profile' %}"><i class="bi bi-person"></i> Edit Profile</a></li>
-                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
-                    <li class="nav-item"><a class="nav-link-custom" href="{%url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
-                    <hr class="border-secondary opacity-25">
-                    <li class="nav-item d-flex align-items-center gap-3 py-2">
-                        <div class="avatar-circle" style="width:35px; height:35px; font-size: 0.8rem;">JD</div>
-                        <div>
-                            <div class="fw-bold text-white small">{{user.username}}</div>
-                            <div class="text-cyan" style="font-size: 0.7rem;">Rank #44</div>
+                   <li class="nav-item"><a class="nav-link-custom" href="{% url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
+                    <li class="nav-item"><a class="nav-link-custom active" href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'edit_profile' %}"><i class="bi bi-person"></i> Edit Profile</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-person"></i> Quiz </a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'leaderboard' %}"><i class="bi bi-person"></i> LeaderBoard </a></li>
+                     <hr class="border-secondary opacity-25"> 
+                    <li class="nav-item d-flex align-items-center gap-3 py-2 px-3">
+                        <div class="p-4 mt-auto border-top border-white border-opacity-10">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="avatar-circle">
+                                    {{ user.username|slice:":2"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-white">{{ user.username }}</div>
+                                    <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
+                                </div>
+                            </div>
+                            <a href="#" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
                         </div>
                     </li>
-                    <li class="nav-item mt-2"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -435,14 +449,17 @@
             <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
         </nav>
 
-        <div class="p-4 mt-auto border-top border-white border-opacity-10">
+       <div class="p-4 mt-auto border-top border-white border-opacity-10">
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="avatar-circle">JD</div>
+                <div class="avatar-circle">
+                    {{ user.username|slice:":2"|upper }}
+                </div>
                 <div>
                     <div class="fw-bold text-white">{{ user.username }}</div>
-                    <div class="text-cyan small">Rank #44</div>
+                    <div class="text-cyan small">Rank #{{ profile.rank }}</div>
                 </div>
             </div>
+        <a href="#" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
         </div>
     </aside>
 
