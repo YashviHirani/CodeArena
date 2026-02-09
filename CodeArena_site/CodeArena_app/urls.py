@@ -28,9 +28,12 @@ urlpatterns = [
     path('DebuggingQuiz/',views.debugging_quiz,name="DebuggingQuiz"),
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path("update-skills/", views.update_skills, name="update_skills"),
-    path("problem/<int:problem_id>/", views.problem_detail_view, name="problem_detail"),
+    path("problem/<int:problem_id>/", views.problem_detail, name="problem_detail"),
     path("submit/<int:problem_id>/", views.submit_solution, name="submit_solution"),
+    # path("update-skills/", views.update_skills, name="update_skills"),
 
+    # In your urls.py
+    path('profile/edit_profile/', views.edit_profile_view, name='edit_profile'),
 
     path('quiz/', views.quiz_home, name='quiz_home'),
     path('quiz/start/', views.start_quiz, name='start_quiz'),
@@ -42,4 +45,6 @@ urlpatterns = [
 
     path("complete-profile/", views.complete_profile, name="complete_profile"),
     
+    # path("quiz/summary/", views.quiz_summary, name="quiz_summary"), 
+    path("guestdashboard/",views.guestdashboard,name='guestdashboard'),   
 ]
