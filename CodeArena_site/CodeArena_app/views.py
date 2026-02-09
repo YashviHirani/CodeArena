@@ -20,6 +20,13 @@ import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 
 
+# for Error page 
+
+def custom_404_view(request, exception):
+    return render(request, "404.html", status=404)
+
+
+
 # ---------------- HOME ----------------
 
 def home_view(request):
@@ -56,33 +63,120 @@ def login_view(request):
 
 # ---------------- SIGNUP ----------------
 
+from django.contrib import messages
+
 def signup_view(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
+        username = request.POST["username"].strip()
+        email = request.POST["email"].strip()
         password = request.POST["password"]
 
-        # 1️⃣ Create User (password encrypted automatically)
+        # ✅ CHECK USERNAME
+        if User.objects.filter(username=username).exists():
+            return render(request, "signup.html", {
+                "error": "Username already exists. Please choose another."
+            })
+
+        # ✅ CHECK EMAIL (optional but recommended)
+        if User.objects.filter(email=email).exists():
+            return render(request, "signup.html", {
+                "error": "Email already registered."
+            })
+
+        # ✅ CREATE USER
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
 
-        # 2️⃣ Profile created via signal (below)
-
-        # 3️⃣ Log user in
         login(request, user)
+        return redirect("complete_profile")
 
-        return redirect("dashboard")
 
     return render(request, "signup.html")
 
+# from django.contrib.auth.decorators import login_required
+
+@login_required
+def complete_profile(request):
+    profile = request.user.profile
+
+    # If already completed → go dashboard
+    if profile.profile_completed:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+
+        # If skip button clicked
+        if "skip" in request.POST:
+            profile.profile_completed = True
+            profile.save()
+            return redirect("dashboard")
+
+        # Save optional fields
+        profile.profile_img = request.FILES.get("profile_img") or profile.profile_img
+        profile.full_name = request.POST.get("full_name", "")
+        profile.summary = request.POST.get("summary", "")
+        profile.dob = request.POST.get("dob") or None
+        profile.github = request.POST.get("github", "")
+        profile.linkedin = request.POST.get("linkedin", "")
+        profile.skills = request.POST.get("skills", "")
+
+        profile.profile_completed = True
+        profile.save()
+
+        return redirect("dashboard")
+
+    return render(request, "onboarding.html")
+
+
+
 # ---------------- DASHBOARD ----------------
+
+from django.db.models import Q
+from django.template.loader import render_to_string
+from .models import Problem, Topic
 
 @login_required
 def dashboard_view(request):
-    return render(request, "dashboard.html")
+
+    search_query = request.GET.get("q", "").strip()
+    difficulty = request.GET.get("difficulty", "all")
+    topic_id = request.GET.get("topic", "all")
+
+    problems = Problem.objects.select_related("topic").all()
+
+    # 🔍 SEARCH FILTER
+    if search_query:
+        problems = problems.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(topic__name__icontains=search_query)
+        )
+
+    # 🎯 DIFFICULTY FILTER
+    if difficulty != "all":
+        problems = problems.filter(difficulty=difficulty)
+
+    # 📚 TOPIC FILTER
+    if topic_id != "all":
+        problems = problems.filter(topic_id=topic_id)
+
+    # ✅ AJAX RESPONSE
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string(
+            "problem_table.html",
+            {"problems": problems},
+            request=request
+        )
+        return JsonResponse({"html": html})
+
+    return render(request, "dashboard.html", {
+        "problems": problems,
+        "topics": Topic.objects.all(),
+    })
+
 
 # ---------------- PROFILE ----------------
 
@@ -118,6 +212,105 @@ def profile_view(request):
     }
 
     return render(request, "profile.html", context)
+
+
+
+# ---------------- QUIZ ----------------
+
+from django.contrib.auth.decorators import login_required
+from .models import UserProfile
+
+# @login_required
+# def leaderboard_view(request):
+#     profiles = (
+#         UserProfile.objects
+#         .filter(points__gt=0)
+#         .select_related("user")
+#         .order_by("-points", "user__username")
+#     )
+
+#     ranked_profiles = []
+#     last_points = None
+#     rank = 0
+
+#     for index, profile in enumerate(profiles, start=1):
+#         if profile.points != last_points:
+#             rank = index
+#             last_points = profile.points
+#         profile.rank = rank
+#         ranked_profiles.append(profile)
+
+#     # 🔥 TOP 3 USERS
+#     top_users = ranked_profiles[:3]
+
+#     return render(request, "leaderboard.html", {
+#         "profiles": ranked_profiles,
+#         "top_users": top_users
+#     })
+
+
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+from django.db.models import Q
+
+@login_required
+def leaderboard_view(request):
+    query = request.GET.get("q", "").strip()
+
+    # =========================
+    # 🔥 GLOBAL RANKING (Cards)
+    # =========================
+    global_profiles = (
+        UserProfile.objects
+        .filter(points__gt=0)
+        .select_related("user")
+        .order_by("-points", "user__username")
+    )
+
+    ranked_global = []
+    last_points = None
+    rank = 0
+
+    for index, profile in enumerate(global_profiles, start=1):
+        if profile.points != last_points:
+            rank = index
+            last_points = profile.points
+        profile.rank = rank
+        ranked_global.append(profile)
+
+    top_users = ranked_global[:3]  # 🔥 Always global top 3
+
+
+    # =========================
+    # 🔍 FILTERED TABLE SEARCH
+    # =========================
+    filtered_profiles = ranked_global
+
+    if query:
+        filtered_profiles = [
+            p for p in ranked_global
+            if query.lower() in p.user.username.lower()
+        ]
+
+    # =========================
+    # AJAX RESPONSE (TABLE ONLY)
+    # =========================
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        table_html = render_to_string(
+            "leaderboard_table.html",
+            {"profiles": filtered_profiles},
+            request=request
+        )
+
+        return JsonResponse({
+            "table_html": table_html
+        })
+
+    return render(request, "leaderboard.html", {
+        "profiles": ranked_global,   # full table initially
+        "top_users": top_users       # always global
+    })
+
 
 # ---------------- EDIT PROFILE ----------------
 
@@ -171,38 +364,7 @@ def update_skills(request):
 
         return JsonResponse({"status": "ok"})
 
-# --------------------- For total and daily submissions of user -------------------------
-from django.utils.timezone import now
-from .models import DailySubmission
 
-@login_required
-def submit_solution(request, problem_id):
-    profile = request.user.profile
-
-    # 1️⃣ total submissions
-    profile.total_submissions += 1
-    profile.save()
-
-    # 2️⃣ daily submission
-    today = now().date()
-    daily, created = DailySubmission.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
-    daily.count += 1
-    daily.save()
-
-# ------------------- Dashboard : to load problems from database  -----------------------
-
-from .models import Problem
-
-@login_required
-def dashboard_view(request):
-    problems = Problem.objects.all()
-
-    return render(request, "dashboard.html", {
-        "problems": problems
-    })
 
 # ------------------- PROBLEM PAGE (LOAD DATA DYNAMICALLY) -----------------------
 from .models import Problem
@@ -219,26 +381,63 @@ def problem_detail_view(request, problem_id):
 
 from django.utils.timezone import now
 from .models import DailySubmission
+from django.db import IntegrityError
+from .models import ProblemSubmission
 
 @login_required
 def submit_solution(request, problem_id):
-    if request.method == "POST":
-        profile = request.user.profile
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
-        # 1️⃣ Total submissions
-        profile.total_submissions += 1
+    problem = get_object_or_404(Problem, id=problem_id)
+    profile = request.user.profile
+
+    # 1️⃣ Total submissions
+    profile.total_submissions += 1
+
+    # 2️⃣ Daily submissions
+    today = now().date()
+    daily, _ = DailySubmission.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+    daily.count += 1
+    daily.save()
+
+    # 3️⃣ Prevent duplicate solving
+    solved, created = ProblemSubmission.objects.get_or_create(
+        user=request.user,
+        problem=problem,
+        defaults={"is_correct": True}
+    )
+
+    if not created:
+        # ❌ Already solved before → no points
         profile.save()
+        return JsonResponse({
+            "status": "already_solved",
+            "points_added": 0
+        })
 
-        # 2️⃣ Daily submissions
-        today = now().date()
-        daily, created = DailySubmission.objects.get_or_create(
-            user=request.user,
-            date=today
-        )
-        daily.count += 1
-        daily.save()
+    # 4️⃣ Difficulty-based points
+    points = PROBLEM_POINTS[problem.difficulty]
+    profile.points += points
 
-        return JsonResponse({"status": "accepted"})
+    # 5️⃣ Solved counters
+    if problem.difficulty == "easy":
+        profile.easy_solved += 1
+    elif problem.difficulty == "medium":
+        profile.medium_solved += 1
+    else:
+        profile.hard_solved += 1
+
+    profile.save()
+
+    return JsonResponse({
+        "status": "accepted",
+        "points_added": points
+    })
+
     
 # ----------------------- QUIZ ------------------------
 from django.shortcuts import render, get_object_or_404, redirect
@@ -249,57 +448,54 @@ import json
 from CodeArena_app.models import Language, Quiz, UserMCQAttempt, MCQ
 from django.views.decorators.csrf import csrf_exempt
 
-def quiz_home(request):
-    languages = Language.objects.all()
-    return render(request, 'quiz.html', {'languages': languages})
 
 
-# @login_required
-def inside_quiz(request):
-    language_id = request.GET.get('lang')
-    if not language_id:
-        return HttpResponse("Language not provided", status=400)
+# # @login_required
+# def inside_quiz(request):
+#     language_id = request.GET.get('lang')
+#     if not language_id:
+#         return HttpResponse("Language not provided", status=400)
 
-    language = get_object_or_404(Language, id=language_id)
+#     language = get_object_or_404(Language, id=language_id)
 
-    # ✅ quizzes already solved correctly by the user
-    solved_quiz_ids = UserMCQAttempt.objects.filter(
-        user_id=request.user.id,
-        is_correct=True
-    ).values_list('quiz_id', flat=True)
+#     # ✅ quizzes already solved correctly by the user
+#     solved_quiz_ids = UserMCQAttempt.objects.filter(
+#         user_id=request.user.id,
+#         is_correct=True
+#     ).values_list('quiz_id', flat=True)
 
-    # ✅ fetch quizzes for this language, excluding solved ones
-    quizzes = (
-        Quiz.objects
-        .select_related('question')
-        .filter(language=language)
-        .exclude(id__in=solved_quiz_ids)
-        .order_by('?')[:10]
-    )
+#     # ✅ fetch quizzes for this language, excluding solved ones
+#     quizzes = (
+#         Quiz.objects
+#         .select_related('question')
+#         .filter(language=language)
+#         .exclude(id__in=solved_quiz_ids)
+#         .order_by('?')[:10]
+#     )
 
-    if not quizzes.exists():
-        return HttpResponse("You have completed all questions 🎉")
+#     if not quizzes.exists():
+#         return HttpResponse("You have completed all questions 🎉")
 
-    quiz_data = [
-        {
-            "quiz_id": quiz.id,
-            "question": quiz.question.question_text,
-            "options": [
-                quiz.question.option_a,
-                quiz.question.option_b,
-                quiz.question.option_c,
-                quiz.question.option_d,
-            ]
-        }
-        for quiz in quizzes
-    ]
+#     quiz_data = [
+#         {
+#             "quiz_id": quiz.id,
+#             "question": quiz.question.question_text,
+#             "options": [
+#                 quiz.question.option_a,
+#                 quiz.question.option_b,
+#                 quiz.question.option_c,
+#                 quiz.question.option_d,
+#             ]
+#         }
+#         for quiz in quizzes
+#     ]
 
-    return render(request, 'insideQuiz.html', {
-        "language": language,
-        "quiz_data": json.dumps(quiz_data)
-    })
+#     return render(request, 'insideQuiz.html', {
+#         "language": language,
+#         "quiz_data": json.dumps(quiz_data)
+#     })
 
-    return render(request, 'inside_quiz.html', context)
+#     return render(request, 'inside_quiz.html', context)
 def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
@@ -364,11 +560,53 @@ def quiz(request):
     return render(request, "quiz.html")
 
 
+from django.db.models import Q
+from datetime import datetime, timedelta
+import json
+
 def quiz_home(request):
-    languages = Language.objects.all()
-    return render(request, 'quiz.html', {
-        'languages': languages
-    })
+    user = request.user
+
+    # ================= DAILY POINTS (Last 7 Days) =================
+    today = datetime.today().date()
+    last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+
+    mcq_labels = []
+    mcq_points = []
+
+    for day in last_7_days:
+        mcq_labels.append(day.strftime("%a"))
+
+        daily_points = UserMCQAttempt.objects.filter(
+            user=user,
+            is_correct=True,
+            attempted_at__date=day
+        ).count() * 5  # or your logic for daily points
+
+        mcq_points.append(daily_points)
+
+    # ================= DEBUGGING ATTEMPT BREAKDOWN =================
+    attempts = UserMCQAttempt.objects.filter(user=user)
+
+    first_correct = attempts.filter(is_correct=True, attempts=1).count()
+    second_correct = attempts.filter(is_correct=True, attempts=2).count()
+    third_plus_correct = attempts.filter(is_correct=True, attempts__gte=3).count()
+
+    wrong_attempts = attempts.filter(is_correct=False).count()
+
+    context = {
+        "mcq_labels": json.dumps(mcq_labels),
+        "mcq_points": json.dumps(mcq_points),
+        "first_correct": first_correct,
+        "second_correct": second_correct,
+        "third_plus_correct": third_plus_correct,
+        "wrong_attempts": wrong_attempts,
+        "languages": Language.objects.all(),
+    }
+
+    return render(request, "quiz.html", context)
+
+
 
 
 def inside_quiz(request):
@@ -449,37 +687,7 @@ def start_quiz(request):
         return redirect(f'/insideQuiz?lang={lang_id}')
 
 
-@csrf_exempt
-def save_mcq_answer(request):
-    if not request.user.is_authenticated:
-        return JsonResponse(
-            {"error": "Login required to save progress"},
-            status=401
-        )
 
-    data = json.loads(request.body)
-
-    quiz = get_object_or_404(Quiz, id=data["quiz_id"])
-    selected = data["selected_option"]
-    is_correct = selected == quiz.question.correct_option
-
-    attempt, _ = UserMCQAttempt.objects.get_or_create(
-        user=request.user,
-        quiz=quiz,
-        defaults={
-            "selected_option": selected,
-            "is_correct": is_correct,
-            "completed": is_correct
-        }
-    )
-
-    if not attempt.is_correct:
-        attempt.selected_option = selected
-        attempt.is_correct = is_correct
-        attempt.completed = is_correct
-        attempt.save()
-
-    return JsonResponse({"correct": is_correct})
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -560,22 +768,27 @@ def debugging_quiz(request):
     })
 
 
-# from django.contrib.auth.decorators import login_required
 
-# @login_required
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def quiz_summary(request):
     ids = request.GET.get("ids")
 
     if not ids:
         return HttpResponse("No quiz session found", status=400)
 
-    quiz_ids = json.loads(ids)
+    try:
+        quiz_ids = json.loads(ids)
+    except ValueError:
+        return HttpResponse("Invalid quiz ids", status=400)
 
     attempts = (
         UserMCQAttempt.objects
         .filter(
             user=request.user,
-            quiz_id__in=quiz_ids   # 🔥 ONLY CURRENT QUIZ
+            quiz_id__in=quiz_ids
         )
         .select_related("quiz__question")
         .order_by("attempted_at")
@@ -602,6 +815,7 @@ def quiz_summary(request):
     return render(request, "quiz_summary.html", {
         "summary": summary
     })
+
 
 
 def get_quiz_questions(user, language, limit=10):
@@ -646,6 +860,104 @@ def get_quizzes(user, language, quiz_type, limit=10):
 
     quizzes = list(wrong) + list(new)
     return quizzes[:limit]
+
+
+
+    # ================== QUIZ POINT CONFIG ==================
+
+QUIZ_POINTS = {
+    "H": {1: 10, 2: 9, 3: 8},
+    "M": {1: 8,  2: 7, 3: 6},
+    "E": {1: 6,  2: 5, 3: 4},
+}
+
+AFTER_THIRD_ATTEMPT_POINTS = 2
+
+
+def calculate_quiz_points(difficulty, attempts):
+    """
+    difficulty: 'E', 'M', 'H'
+    attempts: int
+    """
+    if attempts <= 3:
+        return QUIZ_POINTS[difficulty][attempts]
+    return AFTER_THIRD_ATTEMPT_POINTS
+
+
+@csrf_exempt
+def save_mcq_answer(request):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"error": "Login required"},
+            status=401
+        )
+
+    data = json.loads(request.body)
+    quiz = get_object_or_404(Quiz, id=data["quiz_id"])
+    selected = data["selected_option"]
+
+    is_correct = selected == quiz.question.correct_option
+    profile = request.user.profile
+
+    attempt, created = UserMCQAttempt.objects.get_or_create(
+        user=request.user,
+        quiz=quiz,
+        defaults={"attempts": 0}
+    )
+
+    # ⏱ Increase attempt count
+    attempt.attempts += 1
+    attempt.selected_option = selected
+    attempt.is_correct = is_correct
+    attempt.completed = is_correct
+    attempt.save()
+
+    # 🎯 GIVE POINTS ONLY WHEN ANSWER IS CORRECT
+    if is_correct:
+        points = calculate_quiz_points(
+            quiz.difficulty,
+            attempt.attempts
+        )
+        profile.points += points
+        profile.save()
+
+    return JsonResponse({
+        "correct": is_correct,
+        "attempts": attempt.attempts,
+        "points_awarded": points if is_correct else 0
+    })
+
+
+def _calculate_quiz_points(quiz, attempts):
+    difficulty = quiz.difficulty  # E / M / H
+
+    if attempts <= 3:
+        return {
+            "H": {1: 10, 2: 9, 3: 8},
+            "M": {1: 8,  2: 7, 3: 6},
+            "E": {1: 6,  2: 5, 3: 4},
+        }[difficulty][attempts]
+
+    # ✅ After 3 attempts
+    return 2
+
+
+def _add_points(profile, points):
+    profile.points += points
+    profile.save()
+
+
+
+
+# ================== PROBLEM POINT CONFIG ==================
+
+PROBLEM_POINTS = {
+    "easy": 10,
+    "medium": 15,
+    "hard": 20,
+}
+
+
 
 def problem_detail(request, problem_id):
     problem = Problem.objects.get(id=problem_id)

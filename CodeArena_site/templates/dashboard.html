@@ -7,7 +7,8 @@
     <title>CodeArena | Dashboard</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
     <style>
@@ -33,7 +34,10 @@
         /* Background Gradient wrapper to match Home.html */
         .bg-radial-fixed {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
             z-index: -1;
         }
@@ -61,7 +65,8 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 20px;
-            padding: 1.5rem; /* Adjusted for dashboard density */
+            padding: 1.5rem;
+            /* Adjusted for dashboard density */
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
             height: 100%;
@@ -80,7 +85,10 @@
         .plugin-card.futuristic::after {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
             background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
             transform: translateX(-100%);
             transition: 0.6s;
@@ -111,33 +119,39 @@
         }
 
         /* --- 5. INPUTS (From Home.html form-control-dark) --- */
-        .form-control-dark, .form-select-dark {
+        .form-control-dark,
+        .form-select-dark {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--card-border);
             color: #fff;
             border-radius: 10px;
-            padding: 0.6rem 2.25rem 0.6rem 1rem; /* Extra padding right for arrow */
+            padding: 0.6rem 2.25rem 0.6rem 1rem;
+            /* Extra padding right for arrow */
             transition: all 0.3s ease;
         }
-        
-        .form-control-dark:focus, .form-select-dark:focus {
+
+        .form-control-dark:focus,
+        .form-select-dark:focus {
             background-color: rgba(255, 255, 255, 0.08);
             border-color: var(--primary-glow);
             box-shadow: 0 0 15px rgba(32, 201, 151, 0.1);
             color: #fff;
             outline: none;
         }
-        
+
         .form-control-dark::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
-        
+
         /* --- FIX: SELECT ARROW IN DARK MODE --- */
         .form-select-dark {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;       /* Prevents the 'crosses' (tiling) */
-            background-position: right 0.75rem center; /* Positions it correctly */
-            background-size: 16px 12px;         /* Sets the correct size */
+            background-repeat: no-repeat;
+            /* Prevents the 'crosses' (tiling) */
+            background-position: right 0.75rem center;
+            /* Positions it correctly */
+            background-size: 16px 12px;
+            /* Sets the correct size */
         }
 
         /* --- 6. NAVBAR (Mobile) & SIDEBAR (Desktop) --- */
@@ -161,7 +175,8 @@
 
         .sidebar {
             width: 280px;
-            background: rgba(10, 10, 20, 0.65); /* More transparent than before */
+            background: rgba(10, 10, 20, 0.65);
+            /* More transparent than before */
             backdrop-filter: blur(15px);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
             position: fixed;
@@ -194,11 +209,11 @@
             box-shadow: 0 0 15px rgba(32, 201, 151, 0.1);
             border-left: 2px solid var(--primary-glow);
         }
-        
+
         .nav-link-custom i {
             transition: transform 0.3s;
         }
-        
+
         .nav-link-custom:hover i {
             transform: scale(1.1);
             color: var(--primary-glow);
@@ -210,18 +225,20 @@
             overflow-y: auto;
             overflow-x: auto;
         }
-        
+
         /* Custom Scrollbar */
         .custom-scroll-container::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
+
         .custom-scroll-container::-webkit-scrollbar-thumb {
             background: #2b2b40;
             border-radius: 3px;
         }
+
         .custom-scroll-container::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .table {
@@ -237,7 +254,7 @@
             text-transform: uppercase;
             font-size: 0.85rem;
             letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding: 18px;
             position: sticky;
             top: 0;
@@ -286,20 +303,24 @@
 
         /* Progress bars using Home colors */
         .progress {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             overflow: hidden;
         }
+
         .progress-bar {
             border-radius: 20px;
         }
+
         .bg-gradient-primary {
             background: linear-gradient(90deg, #20c997, #4e54c8);
             box-shadow: 0 0 10px rgba(32, 201, 151, 0.4);
         }
+
         .bg-gradient-success {
             background: linear-gradient(90deg, #00b09b, #96c93d);
         }
+
         .bg-gradient-warning {
             background: linear-gradient(90deg, #f6d365, #fda085);
         }
@@ -319,7 +340,8 @@
             <div class="collapse navbar-collapse" id="mobileMenu">
                 <ul class="navbar-nav mt-3">
                     </li>
-                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a>
+                    <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i
+                                class="bi bi-person"></i> Profile</a>
                     </li>
                     <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i>
@@ -334,6 +356,7 @@
                             <div class="text-cyan" style="font-size: 0.7rem;">Rank #001</div>
                         </div>
                     </li>
+                    <!-- <li class="nav-item mt-2 px-3"><a href="#" class="btn btn-outline-danger btn-sm w-100">Logout</a></li> -->
                 </ul>
             </div>
         </div>
@@ -423,35 +446,30 @@
                 <div class="row align-items-center g-3">
 
                     <div class="col-lg-4">
-                        <h5 class="mb-0 fw-bold font-orbitron"><i class="bi bi-list-task me-2 text-cyan"></i>Challenges</h5>
+                        <h5 class="mb-0 fw-bold font-orbitron"><i class="bi bi-list-task me-2 text-cyan"></i>Challenges
+                        </h5>
                     </div>
 
                     <div class="col-lg-8">
                         <div class="row g-2">
                             <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: rgba(255,255,255,0.1); border-top-left-radius: 10px; border-bottom-left-radius: 10px;">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-                                    <input class="form-control form-control-dark border-start-0 ps-0" placeholder="Search problems...">
-                                </div>
+                                <input id="searchInput" class="form-control form-control-dark border-start-0 ps-0"
+                                    placeholder="Search problems...">
                             </div>
                             <div class="col-6 col-md-3">
-                                <select class="form-select form-select-dark">
-                                    <option>Difficulty: All</option>
-                                    <option>Easy</option>
-                                    <option>Medium</option>
-                                    <option>Hard</option>
+                                <select id="difficultyFilter" class="form-select form-select-dark">
+                                    <option value="all">Difficulty: All</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
                                 </select>
                             </div>
                             <div class="col-6 col-md-3">
-                                <select class="form-select form-select-dark">
-                                    <option>Topic: All</option>
-                                    <option>Arrays</option>
-                                    <option>Strings</option>
-                                    <option>Math</option>
-                                    <option>Binary Search</option>
-                                    <option>Dynamic Programming</option>
+                                <select id="topicFilter" class="form-select form-select-dark">
+                                    <option value="all">Topic: All</option>
+                                    {% for topic in topics %}
+                                    <option value="{{ topic.id }}">{{ topic.name }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -470,57 +488,9 @@
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for problem in problems %}
-                        <tr>
-                            <!-- Status -->
-                            <td class="ps-4">
-                                <!-- {% if problem.id in solved_problem_ids %} -- ignore for now coz solved status is not there now demo for testing--> 
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                {% else %}
-                                    <i class="bi bi-circle text-secondary opacity-50"></i>
-                                {% endif %}
-                            </td>
 
-                            <!-- Problem Title -->
-                            <td>
-                                <div class="fw-bold text-white">{{ problem.title }}</div>
-                                <small class="text-secondary">
-                                    {{ problem.description|truncatewords:6 }}
-                                </small>
-                            </td>
-
-                            <!-- Difficulty -->
-                            <td>
-                                <span class="fw-bold
-                                    {% if problem.difficulty == 'easy' %}text-success
-                                    {% elif problem.difficulty == 'medium' %}text-warning
-                                    {% else %}text-danger{% endif %}">
-                                    {{ problem.difficulty|title }}
-                                </span>
-                            </td>
-
-                            <!-- Category / Topic -->
-                            <td>
-                                <span class="badge bg-white bg-opacity-10 text-white fw-normal border border-white border-opacity-10">
-                                    {{ problem.topic.name }}
-                                </span>
-                            </td>
-
-                            <!-- Action -->
-                            <td class="text-center">
-                                <a href="{% url 'problem_detail' problem.id %}" class="btn btn-sm btn-glow">
-                                    Solve
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-secondary py-4">
-                                No problems available right now.
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="problemTableBody">
+                        {% include "problem_table.html" %}
                     </tbody>
 
                 </table>
@@ -530,6 +500,46 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const searchInput = document.getElementById("searchInput");
+            const difficultyFilter = document.getElementById("difficultyFilter");
+            const topicFilter = document.getElementById("topicFilter");
+            const tableBody = document.getElementById("problemTableBody");
+
+            function fetchProblems() {
+
+                const query = encodeURIComponent(searchInput.value);
+                const difficulty = difficultyFilter.value;
+                const topic = topicFilter.value;
+
+                fetch(`/dashboard/?q=${query}&difficulty=${difficulty}&topic=${topic}`, {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        tableBody.innerHTML = data.html;
+                    })
+                    .catch(error => console.error("Error:", error));
+            }
+
+            let debounceTimer;
+            searchInput.addEventListener("keyup", function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchProblems, 300);
+            });
+
+            difficultyFilter.addEventListener("change", fetchProblems);
+            topicFilter.addEventListener("change", fetchProblems);
+
+        });
+    </script>
+
+
 </body>
 
 </html>

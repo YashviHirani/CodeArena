@@ -7,13 +7,17 @@ from django.conf import settings
 class User(AbstractUser):
     # AbstractUser already contains username, email, password, etc.
     # Keep this empty unless adding platform-wide auth fields.
-    pass
+    class Meta:
+        indexes = [
+            models.Index(fields=["username"]),
+        ]
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
-        related_name='profile'
+        related_name='profile',
+        unique=True
     )
     profile_img = models.ImageField(upload_to='media/', default='default.png', blank=True)
     full_name = models.CharField(max_length=100, blank=True)
@@ -45,6 +49,8 @@ class UserProfile(models.Model):
         return [skill.strip() for skill in self.skills.split(',')] if self.skills else []
     
     total_submissions = models.IntegerField(default=0)
+    profile_completed = models.BooleanField(default=False)
+
 
 # --- Learning Content Models ---
 
@@ -142,10 +148,14 @@ class UserMCQAttempt(models.Model):
     selected_option = models.CharField(max_length=1)
     is_correct = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
+
+    attempts = models.PositiveIntegerField(default=0)  # this one is NEW guys
     attempted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'quiz')
+
+
 
 
 
@@ -217,3 +227,14 @@ class TestCase(models.Model):
 
     def __str__(self):
         return f"Testcase for {self.problem.title}"
+
+
+
+class ProblemSubmission(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
+    is_correct = models.BooleanField(default=False)
+    solved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "problem")
