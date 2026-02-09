@@ -260,7 +260,9 @@
         }
         function goToSummary() {
             const ids = sessionStorage.getItem("current_quiz_ids");
-            window.location.href = `/quiz/summary/?ids=${ids}`;
+            window.location.href = "{% url 'insideQuiz' %}?lang=" + lang;
+
+
         }
 
 

@@ -13,14 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-
         .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    box-shadow: 0 0 6px rgba(255,255,255,0.3);
-}
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+        }
 
         /* --- THEME VARIABLES --- */
         :root {
@@ -57,75 +56,87 @@
 
         /* --- NAVBAR & SIDEBAR --- */
         /* --- NAVBAR & SIDEBAR --- */
-.navbar {
-    background: rgba(10, 10, 20, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
+        .navbar {
+            background: rgba(10, 10, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-.navbar-brand-custom {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 1px;
-    background: linear-gradient(90deg, #20c997, #8f94fb);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
-}
+        .navbar-brand-custom {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #20c997, #8f94fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
+        }
 
-.sidebar {
-    width: 280px;
-    background: rgba(15, 15, 26, 0.8);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    position: fixed;
-    top: 0; bottom: 0; left: 0;
-    display: flex; flex-direction: column;
-    z-index: 1050;
-}
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 15, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1050;
+        }
 
-.nav-link-custom {
-    padding: 12px 20px;
-    margin: 4px 15px;
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.75);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    font-weight: 500;
-}
+        .nav-link-custom {
+            padding: 12px 20px;
+            margin: 4px 15px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.75);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
 
-.nav-link-custom:hover,
-.nav-link-custom.active {
-    background: linear-gradient(90deg, rgba(32, 201, 151, 0.15), rgba(78, 84, 200, 0.15));
-    color: #ffffff;
-    border-left: 3px solid #20c997;
-    text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
-}
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            background: linear-gradient(90deg, rgba(32, 201, 151, 0.15), rgba(78, 84, 200, 0.15));
+            color: #ffffff;
+            border-left: 3px solid #20c997;
+            text-shadow: 0 0 8px rgba(32, 201, 151, 0.4);
+        }
 
-/* Avatar Animation */
-@keyframes borderFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+        /* Avatar Animation */
+        @keyframes borderFlow {
+            0% {
+                background-position: 0% 50%;
+            }
 
-.avatar-circle {
-    width: 40px;
-    height: 40px;
-    background: var(--glow-gradient);
-    background-size: 300%;
-    animation: borderFlow 4s infinite linear;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    box-shadow: 0 0 10px rgba(32, 201, 151, 0.4);
-}
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            background: var(--glow-gradient);
+            background-size: 300%;
+            animation: borderFlow 4s infinite linear;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 0 10px rgba(32, 201, 151, 0.4);
+        }
+
         .main-content {
             padding: 20px;
             transition: margin-left 0.3s ease;
@@ -305,30 +316,30 @@
             </div>
         </nav>
 
-       <aside class="sidebar d-none d-lg-flex">
-    <div class="p-4 border-bottom border-white border-opacity-10">
-        <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
-    </div>
-
-    <nav class="mt-4 flex-grow-1 px-2">
-        <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
-        <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
-        <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
-        <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
-    </nav>
-
-    <div class="p-4 mt-auto border-top border-white border-opacity-10">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="avatar-circle">
-                {{ user.username|slice:":2"|upper }}
+        <aside class="sidebar d-none d-lg-flex">
+            <div class="p-4 border-bottom border-white border-opacity-10">
+                <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
             </div>
-            <div>
-                <div class="fw-bold text-white">{{ user.username }}</div>
-                <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
+
+            <nav class="mt-4 flex-grow-1 px-2">
+                <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
+                <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>
+                <a href="{% url 'quiz_home' %}" class="nav-link-custom"><i class="bi bi-cpu"></i> Quiz</a>
+                <a href="{% url 'leaderboard' %}" class="nav-link-custom"><i class="bi bi-trophy"></i> Leaderboard</a>
+            </nav>
+
+            <div class="p-4 mt-auto border-top border-white border-opacity-10">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="avatar-circle">
+                        {{ user.username|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white">{{ user.username }}</div>
+                        <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-</aside>
+        </aside>
 
         <main class="main-content">
             <div class="container-fluid" style="max-width: 1200px;">
@@ -407,27 +418,27 @@
                                 <h5 class="fw-bold mb-0 text-white">MCQ Performance</h5>
                                 <div class="d-flex flex-wrap gap-3 mt-2 small ps-lg-3">
 
-    <div class="d-flex align-items-center gap-2">
-        <span class="legend-dot bg-success"></span>
-        <span class="text-secondary">1st Attempt</span>
-    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="legend-dot bg-success"></span>
+                                        <span class="text-secondary">1st Attempt</span>
+                                    </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <span class="legend-dot bg-info"></span>
-        <span class="text-secondary">2nd Attempt</span>
-    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="legend-dot bg-info"></span>
+                                        <span class="text-secondary">2nd Attempt</span>
+                                    </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <span class="legend-dot bg-warning"></span>
-        <span class="text-secondary">3rd+ Attempt</span>
-    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="legend-dot bg-warning"></span>
+                                        <span class="text-secondary">3rd+ Attempt</span>
+                                    </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <span class="legend-dot bg-danger"></span>
-        <span class="text-secondary">Wrong</span>
-    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="legend-dot bg-danger"></span>
+                                        <span class="text-secondary">Wrong</span>
+                                    </div>
 
-</div>
+                                </div>
 
                                 <i class="bi bi-three-dots text-secondary"></i>
                             </div>
@@ -655,6 +666,17 @@
 
             // ✅ Redirect to debugging quiz
             window.location.href = `/quiz/debug/?lang=${lang}`;
+        }
+        function startQuiz() {
+            const lang = document.getElementById("languageSelect").value;
+
+            if (!lang) {
+                alert("Please select a language");
+                return;
+            }
+
+            // Redirect to MCQ quiz
+            window.location.href = `/quiz/mcq/?lang=${lang}`;
         }
     </script>
 
