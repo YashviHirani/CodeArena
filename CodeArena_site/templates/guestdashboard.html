@@ -390,6 +390,100 @@ class Solution:
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // 1. GET USER AUTH STATUS FROM DJANGO
+        // Django renders "True" or "False", we convert to JS boolean
+        const isAuthenticated = "{{ user.is_authenticated }}" === "True";
+
+        function runSim() {
+            const res = document.getElementById('testResult');
+            res.innerHTML = '<span class="text-info"><span class="spinner-border spinner-border-sm me-2"></span>Running...</span>';
+            setTimeout(() => {
+                res.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Sample Test Case Passed!</span>';
+            }, 800);
+        }
+
+        function submitSim() {
+            {% if problem %}
+        // If a problem exists, generate the URL normally
+        const submitUrl = "{% url 'submit_solution' problem.id %}";
+    {% else %}
+        // If no problem is loaded, provide a fallback or null to prevent crash
+        console.error("No problem loaded in context!");
+        const submitUrl = ""; 
+    {% endif %}
+
+    if (submitUrl) {
+        fetch(submitUrl, {
+            // ... rest of your fetch code
+        });
+    }
+            // 2. CHECK IF LOGGED IN
+            if (!isAuthenticated) {
+                // If not logged in, show the modal and STOP execution
+                const loginModal = new bootstrap.Modal(document.getElementById('loginPromptModal'));
+                loginModal.show();
+                return; 
+            }
+
+            // 3. IF LOGGED IN, PROCEED AS NORMAL
+            const code = document.getElementById("codeEditor").value;
+            const language = document.getElementById("languageSelect").value;
+            console.log("Submitting:", language, code);
+
+            fetch("{% url 'submit_solution' problem.id %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    code: code,
+                    language: language
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Server response:", data);
+
+                // Clear previous highlights
+                document.querySelectorAll(".testcase-row").forEach(tc => {
+                    tc.classList.remove("testcase-failed");
+                });
+
+                let outputHTML = `<div>⚖️ Verdict: <b>${data.verdict}</b></div>`;
+
+                if (data.verdict === "Accepted") {
+                    outputHTML += `
+                        <div>⏱ Time: ${data.time_ms} ms</div>
+                        <div>💾 Memory: ${data.memory_mb} MB</div>
+                    `;
+                } else {
+                    outputHTML += `<div class="text-danger mt-2">❌ Failed</div>`;
+
+                    if (data.failed_testcase) {
+                        const failedTC = document.querySelector(
+                            `.testcase-row[data-testcase="${data.failed_testcase}"]`
+                        );
+                        if (failedTC) {
+                            failedTC.classList.add("testcase-failed");
+                            failedTC.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }
+                    }
+
+                    if (data.error) {
+                        outputHTML += `
+                            <pre class="text-danger small mt-2">${data.error}</pre>
+                        `;
+                    }
+                }
+
+                document.getElementById("submissionResult").innerHTML = outputHTML;
+            })
+            .catch(err => {
+                alert("Submission failed");
+                console.error(err);
+            });     
+        }
         document.addEventListener('DOMContentLoaded', function() {
             // Modals
             const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
@@ -427,5 +521,29 @@ class Solution:
             });
         });
     </script>
+
+    <div class="modal fade" id="loginPromptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: rgba(15, 15, 26, 0.95); border: 1px solid var(--primary-glow); backdrop-filter: blur(10px);">
+                <div class="modal-header border-bottom border-white border-opacity-10">
+                    <h5 class="modal-title font-heading text-cyan">
+                        <i class="bi bi-lock-fill me-2"></i>Access Denied
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p class="fs-5 text-light opacity-75 mb-4">
+                        You must be logged in to submit a solution to the Arena.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-glow text-white text-decoration-none">
+                            Login Now <i class="bi bi-box-arrow-in-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -49,4 +49,5 @@ urlpatterns = [
     
     # path("quiz/summary/", views.quiz_summary, name="quiz_summary"), 
     path("guestdashboard/",views.guestdashboard,name='guestdashboard'),   
+    path('contact/submit/', views.contact_submit, name='contact_submit'),
 ]

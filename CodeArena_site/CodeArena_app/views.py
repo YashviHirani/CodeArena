@@ -41,8 +41,25 @@ def home_view(request):
 
 User = get_user_model()
 
+from django.shortcuts import render
+from .models import Problem  # Import your Problem model
+
 def guestdashboard(request):
-    return render(request,"guestdashboard.html")
+    # Fetch a problem to display. 
+    # For a guest dashboard, maybe you want the first problem or a "Daily Challenge"
+    problem = Problem.objects.first() 
+
+    # SAFETY CHECK: If the database is empty, problem will be None
+    if not problem:
+        # Handle empty DB (optional: create a dummy placeholder or redirect)
+        pass 
+
+    context = {
+        'problem': problem,
+        # ... any other context variables
+    }
+    
+    return render(request, 'guestdashboard.html', context)
 
 # ---------------- LOGIN ----------------
 def login_view(request):
@@ -919,3 +936,28 @@ def submit_solution(request, problem_id):
     profile.save()
 
     return JsonResponse(response)
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import ContactMessage
+
+def contact_submit(request):
+    if request.method == "POST":
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        # Create and save the object
+        new_message = ContactMessage(
+            name=name, 
+            email=email, 
+            subject=subject, 
+            message=message
+        )
+        new_message.save()
+
+        messages.success(request, "Your message has been sent successfully!")
+        return redirect('home') # Or wherever your landing page is
+    
+    return redirect('home')
