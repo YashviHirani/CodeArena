@@ -13,6 +13,58 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        :root {
+    --sidebar-width: 280px;
+    --primary-glow: #20c997;
+    --secondary-glow: #8f94fb;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: rgba(15, 15, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1050;
+}
+
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+.text-cyan {
+    background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bolder;
+}
+
+.border-bottom {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.border-opacity-10 {
+    border-opacity: 0.1;
+}
+/* --- MOBILE NAVBAR UI --- */
+.navbar {
+    background-color: #0f0f1a;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.navbar-brand {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
         .legend-dot {
             width: 10px;
             height: 10px;
@@ -45,11 +97,7 @@
             width: 100%;
         }
 
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
+        h1,h2,h3,h4,h5,
         .font-heading {
             font-family: 'Orbitron', sans-serif;
         }
@@ -184,12 +232,6 @@
             transform: translateX(100%);
         }
 
-        /* --- TEXT & BUTTONS --- */
-        .text-cyan {
-            color: var(--primary-glow);
-            text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
-        }
-
         .hero-gradient-text {
             background: linear-gradient(90deg, #b7fce7 0%, #20c997 50%, #8f94fb 100%);
             -webkit-background-clip: text;
@@ -284,7 +326,7 @@
 
         <nav class="navbar navbar-expand-lg navbar-glass d-lg-none sticky-top">
             <div class="container-fluid">
-                <a class="navbar-brand-custom" href="#">CodeArena</a>
+               <a class="navbar-brand" href="{% url 'dashboard' %}">CodeArena</a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
                     data-bs-target="#mobileMenu">
                     <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
@@ -317,7 +359,7 @@
         </nav>
 
         <aside class="sidebar d-none d-lg-flex">
-            <div class="p-4 border-bottom border-white border-opacity-10">
+             <div class="p-4 border-bottom border-white border-opacity-10">
                 <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
             </div>
 

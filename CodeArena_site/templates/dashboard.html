@@ -12,6 +12,60 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
     <style>
+        /* --- LOGO & TYPOGRAPHY STYLES --- */
+/* --- SIDEBAR & LOGO UI --- */
+:root {
+    --sidebar-width: 280px;
+    --primary-glow: #20c997;
+    --secondary-glow: #8f94fb;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background: rgba(15, 15, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1050;
+}
+
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+.text-cyan {
+    background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bolder;
+}
+
+.border-bottom {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.border-opacity-10 {
+    border-opacity: 0.1;
+}
+/* --- MOBILE NAVBAR UI --- */
+.navbar {
+    background-color: #0f0f1a;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.navbar-brand {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
         /* --- 1. VARIABLES & BASICS (From Home.html) --- */
         :root {
             --primary-glow: #20c997;
@@ -40,16 +94,6 @@
             bottom: 0;
             background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
             z-index: -1;
-        }
-
-        /* --- 2. TYPOGRAPHY & UTILS --- */
-        .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .text-cyan {
-            color: #20c997;
-            text-shadow: 0 0 10px rgba(32, 201, 151, 0.3);
         }
 
         .gradient-heading {
@@ -157,11 +201,6 @@
         /* --- 6. NAVBAR (Mobile) & SIDEBAR (Desktop) --- */
         /* Adapted from Home.html Navbar style */
         /* --- NAVBAR & SIDEBAR --- */
-.navbar {
-    background: rgba(10, 10, 20, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
 
 .navbar-brand-custom {
     font-family: 'Orbitron', sans-serif;
@@ -340,7 +379,7 @@
  
     <nav class="navbar navbar-expand-lg navbar-glass d-lg-none sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand-custom" href="#">CodeArena</a>
+        <a class="navbar-brand" href="{% url 'dashboard' %}">CodeArena</a>
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
             <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
         </button>
@@ -369,7 +408,7 @@
     <div class="p-4 border-bottom border-white border-opacity-10">
         <span class="font-orbitron fs-4 text-cyan">CodeArena</span>
     </div>
-
+    
     <nav class="mt-4 flex-grow-1 px-2">
         <a href="{% url 'dashboard' %}" class="nav-link-custom"><i class="bi bi-terminal"></i> Problems</a>
         <a href="{% url 'profile' %}" class="nav-link-custom"><i class="bi bi-person"></i> Profile</a>

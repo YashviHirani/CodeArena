@@ -208,7 +208,17 @@ from .models import DailySubmission
 @login_required
 def profile_view(request):
     user = request.user
+    
+    # 🔥 Ensure streaks are updated (e.g., if a streak broke yesterday)
+    update_user_streaks(user)
+
     profile = user.profile
+
+    # 1. Get unique topic objects for problems solved correctly by this user
+    mastered_topics = Topic.objects.filter(
+        problems__problemsubmission__user=user,
+        problems__problemsubmission__is_correct=True
+    ).distinct()
 
     total_solved = (
         profile.easy_solved +
@@ -229,11 +239,10 @@ def profile_view(request):
         "total_solved": total_solved,
         "member_since": user.date_joined,
         "activity": activity,
+        "mastered_topics": mastered_topics,  # 2. Add this to context
     }
 
     return render(request, "profile.html", context)
-
-
 
 # ---------------- QUIZ ----------------
 
@@ -851,6 +860,7 @@ def submit_solution(request, problem_id):
     # 3️⃣ UPDATE SUBMISSION STATS (Your Submission Logic)
     profile.total_submissions += 1
     
+    #----------- for streak ------------------
     today = now().date()
     daily, _ = DailySubmission.objects.get_or_create(
         user=request.user,
@@ -858,6 +868,8 @@ def submit_solution(request, problem_id):
     )
     daily.count += 1
     daily.save()
+
+    #----------------------------------------
 
     # 4️⃣ HANDLE VERDICT
     response = {"verdict": result["verdict"]}
@@ -867,6 +879,17 @@ def submit_solution(request, problem_id):
         problem=problem,
         defaults={"is_correct": False}
     )
+
+    today = now().date()
+    daily, _ = DailySubmission.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+    daily.count += 1
+    daily.save()
+
+    # 🔥 NEW: Recalculate streaks after updating daily submission
+    update_user_streaks(request.user)
 
     if result["verdict"] == "Accepted":
         response["time_ms"] = result["time_ms"]
@@ -930,3 +953,56 @@ def contact_submit(request):
         return redirect('home') # Or wherever your landing page is
     
     return redirect('home')
+
+def update_user_streaks(user):
+    profile = user.profile
+    # Get all submission dates in descending order
+    # dates = list(DailySubmission.objects.filter(user=user).order_by('-date').values_list('date', flat=True))
+    # Get all unique submission dates
+    dates_query = DailySubmission.objects.filter(user=user).order_by('-date')
+    dates = list(dates_query.values_list('date', flat=True))
+
+    if not dates:
+        profile.current_streak = 0
+        profile.max_streak = 0
+        profile.total_active_days = 0 # Reset if no history
+        profile.save()
+        return
+
+    # 🔥 NEW: Calculate Total Active Days
+    # Since each DailySubmission represents a unique day, the count is the total
+    profile.total_active_days = dates_query.count()
+
+    today = now().date()
+    yesterday = today - timedelta(days=1)
+    
+    # --- Calculate Current Streak ---
+    current = 0
+    # Streak is active if user submitted today OR yesterday
+    if dates[0] == today or dates[0] == yesterday:
+        expected_date = dates[0]
+        for d in dates:
+            if d == expected_date:
+                current += 1
+                expected_date -= timedelta(days=1)
+            else:
+                break
+    else:
+        current = 0
+    
+    # --- Calculate Max Streak ---
+    # Sort ascending for max streak calculation
+    dates_asc = sorted(dates)
+    max_s = 0
+    temp_s = 1
+    for i in range(1, len(dates_asc)):
+        if dates_asc[i] == dates_asc[i-1] + timedelta(days=1):
+            temp_s += 1
+        else:
+            max_s = max(max_s, temp_s)
+            temp_s = 1
+    max_s = max(max_s, temp_s)
+
+    profile.current_streak = current
+    profile.max_streak = max_s
+    profile.save(update_fields=['current_streak', 'max_streak', 'total_active_days'])

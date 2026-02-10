@@ -605,24 +605,23 @@
       </div>
 
       <div class="col-md-6">
-          <div class="plugin-card">
-              <div class="user-content">
-                  <p class="font-heading h4 mb-4 text-white"><i class="bi bi-journal-code me-2 text-purple"></i>Topics Covered</p>
-                  <div class="d-flex flex-wrap gap-2">
-                    <span class="topic-tag">Arrays</span>
-                    <span class="topic-tag">String</span>
-                    <span class="topic-tag">Hash Table</span>
-                    <span class="topic-tag">Dynamic Programming</span>
-                    <span class="topic-tag">Math</span>
-                    <span class="topic-tag">Sorting</span>
-                    <span class="topic-tag">Greedy</span>
-                    <span class="topic-tag">Binary Search</span>
-                    <span class="topic-tag">Tree</span>
-                    <span class="topic-tag">Graph</span>
-                  </div>
-              </div>
-          </div>
-      </div>
+    <div class="plugin-card">
+        <div class="user-content">
+            <p class="font-heading h4 mb-4 text-white">
+                <i class="bi bi-journal-code me-2 text-purple"></i>Topics Covered
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                {% if mastered_topics %}
+                    {% for topic in mastered_topics %}
+                        <span class="topic-tag">{{ topic.name }}</span>
+                    {% endfor %}
+                {% else %}
+                    <p class="small text-muted italic">Solve problems to unlock topics!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
     </div>
     <div class="row mt-4 mb-4">
             <div class="col-12">
