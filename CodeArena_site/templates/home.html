@@ -427,30 +427,30 @@
 
                     <div class="col-lg-7">
                         <div class="plugin-card futuristic h-100 p-4">
-                            <form>
-                                <div class="row g-3">
+                            <form method="POST" action="{% url 'contact_submit' %}">
+                                {% csrf_token %} <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label class="text-secondary small mb-2">Your Name</label>
-                                            <input type="text" class="form-control form-control-dark" placeholder="John Doe">
+                                            <input type="text" name="name" class="form-control form-control-dark" placeholder="John Doe" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label class="text-secondary small mb-2">Your Email</label>
-                                            <input type="email" class="form-control form-control-dark" placeholder="john@example.com">
+                                            <input type="email" name="email" class="form-control form-control-dark" placeholder="john@example.com" required>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group mb-3">
                                             <label class="text-secondary small mb-2">Subject</label>
-                                            <input type="text" class="form-control form-control-dark" placeholder="Bug Report / Feature Request">
+                                            <input type="text" name="subject" class="form-control form-control-dark" placeholder="Bug Report / Feature Request" required>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-group mb-4">
                                             <label class="text-secondary small mb-2">Message</label>
-                                            <textarea class="form-control form-control-dark" rows="5" placeholder="Tell us how we can help..."></textarea>
+                                            <textarea name="message" class="form-control form-control-dark" rows="5" placeholder="Tell us how we can help..." required></textarea>
                                         </div>
                                     </div>
                                     <div class="col-12">

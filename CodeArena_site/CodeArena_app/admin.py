@@ -26,3 +26,11 @@ admin.site.register(Topic)
 admin.site.register(Problem)
 admin.site.register(TestCase)
 admin.site.register(ExampleTestCase)
+
+from django.contrib import admin
+from .models import ContactMessage
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'subject', 'created_at')
+    readonly_fields = ('created_at',)
