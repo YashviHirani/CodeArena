@@ -175,78 +175,28 @@ from .models import Problem, ProblemSubmission, UserProfile
 
 @login_required
 def dashboard_view(request):
-    search_query = request.GET.get("q", "").strip()
-    difficulty = request.GET.get("difficulty", "all")
-    topic_id = request.GET.get("topic", "all")
 
-    problems_queryset = Problem.objects.select_related("topic")
-
-    # ---------------- SEARCH ----------------
-    if search_query:
-        bst = ProblemBST()
-        for p in problems_queryset:
-            bst.insert(p)
-        problems = bst.search_partial(search_query)
-    else:
-        problems = list(problems_queryset)
-
-    # ---------------- FILTERS ----------------
-    if difficulty != "all":
-        problems = [p for p in problems if p.difficulty == difficulty]
-
-    if topic_id != "all":
-        problems = [p for p in problems if str(p.topic_id) == topic_id]
-
-    # ---------------- STATUS (Solved / Wrong / Not Attempted) ----------------
-    submissions = ProblemSubmission.objects.filter(
-        user=request.user,
-        problem__in=problems
+    # Order users by points (highest first)
+    ranked_profiles = (
+        UserProfile.objects
+        .order_by('-points')
+        .values_list('user_id', flat=True)
     )
 
-    submission_map = {
-        s.problem_id: s.is_correct
-        for s in submissions
+    # Convert to list
+    ranked_list = list(ranked_profiles)
+
+    # Get current user rank
+    try:
+        rank = ranked_list.index(request.user.id) + 1
+    except ValueError:
+        rank = None
+
+    context = {
+        "rank": rank
     }
 
-    for problem in problems:
-        if problem.id in submission_map:
-            problem.status = "solved" if submission_map[problem.id] else "wrong"
-        else:
-            problem.status = "not_attempted"
-
-    # ---------------- DASHBOARD STATS ----------------
-    total_problems = Problem.objects.count()
-
-    solved_count = ProblemSubmission.objects.filter(
-        user=request.user,
-        is_correct=True
-    ).count()
-
-    # Rank 
-    rank = request.user.profile.rank if request.user.profile.rank > 0 else "—"
-
-    try:
-        rank = list(ranked_profiles).index(request.user.id) + 1
-    except ValueError:
-        rank = "—"
-
-    # ---------------- AJAX ----------------
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        html = render_to_string(
-            "problem_table.html",
-            {"problems": problems},
-            request=request
-        )
-        return JsonResponse({"html": html})
-
-    return render(request, "dashboard.html", {
-        "problems": problems,
-        "topics": Topic.objects.all(),
-        "total_problems": total_problems,
-        "solved_count": solved_count,
-        "rank": rank,
-    })
-
+    return render(request, "dashboard.html", context)
 
 # ---------------- PROFILE ----------------
 
