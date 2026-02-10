@@ -205,13 +205,8 @@ def dashboard_view(request):
         is_correct=True
     ).count()
 
-    # Rank calculation (based on points)
-    ranked_profiles = (
-        UserProfile.objects
-        .filter(points__gt=0)
-        .order_by("-points")
-        .values_list("user_id", flat=True)
-    )
+    # Rank 
+    rank = request.user.profile.rank if request.user.profile.rank > 0 else "—"
 
     try:
         rank = list(ranked_profiles).index(request.user.id) + 1
@@ -292,19 +287,10 @@ def leaderboard_view(request):
         UserProfile.objects
         .filter(points__gt=0)
         .select_related("user")
-        .order_by("-points", "user__username")
+        .order_by("rank")   # ✅ ORDER BY RANK
     )
 
-    ranked_global = []
-    last_points = None
-    rank = 0 
-
-    for index, profile in enumerate(global_profiles, start=1):
-        if profile.points != last_points:
-            rank = index
-            last_points = profile.points
-        profile.rank = rank
-        ranked_global.append(profile)
+    ranked_global = global_profiles
 
     top_users = ranked_global[:3]  # 🔥 Always global top 3
 
@@ -338,6 +324,35 @@ def leaderboard_view(request):
         "profiles": ranked_global,   # full table initially
         "top_users": top_users       # always global
     })
+
+
+from django.db import transaction
+
+def recalculate_ranks():
+    """
+    Dense ranking:
+    Same points → same rank.
+    """
+
+    with transaction.atomic():
+
+        profiles = (
+            UserProfile.objects
+            .filter(points__gt=0)
+            .order_by("-points", "user__username")
+        )
+
+        last_points = None
+        current_rank = 0
+
+        for index, profile in enumerate(profiles, start=1):
+            if profile.points != last_points:
+                current_rank = index
+                last_points = profile.points
+
+            if profile.rank != current_rank:
+                profile.rank = current_rank
+                profile.save(update_fields=["rank"])
 
 
 # ---------------- EDIT PROFILE ----------------
@@ -494,6 +509,7 @@ def save_mcq_answer(request):
             profile.points += points_added
             attempt.completed = True
             profile.save(update_fields=["points"])
+            recalculate_ranks()
 
     attempt.save()
 
@@ -919,5 +935,6 @@ def submit_solution(request, problem_id):
         response["error"] = result.get("error")
 
     profile.save()
+    recalculate_ranks()
 
     return JsonResponse(response)

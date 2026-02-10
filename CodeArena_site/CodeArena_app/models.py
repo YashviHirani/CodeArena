@@ -57,6 +57,10 @@ class UserProfile(models.Model):
     
     total_submissions = models.IntegerField(default=0)
     profile_completed = models.BooleanField(default=False)
+    class Meta:
+        indexes = [
+            models.Index(fields=["points"]),
+        ]
 
 
 # --- Learning Content Models ---
