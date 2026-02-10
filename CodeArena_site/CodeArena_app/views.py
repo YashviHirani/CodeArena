@@ -495,23 +495,25 @@ def save_mcq_answer(request):
         attempt.selected_option = selected_option
         attempt.is_correct = is_correct
 
-    # ================= ADD POINTS ONLY ON FIRST SUCCESS =================
     points_added = 0
 
-    if is_correct and not attempt.completed:
-        difficulty = quiz.difficulty  # "E", "M", "H"
-        attempt_no = attempt.attempts
+    if is_correct:
+        if not attempt.completed:
 
-        points_added = QUIZ_POINTS.get(difficulty, {}).get(
-            attempt_no,
-            AFTER_THIRD_ATTEMPT_POINTS
-        )
+            difficulty = quiz.difficulty
+            attempt_no = attempt.attempts
 
-        profile.points += points_added
-        attempt.completed = True
-        profile.save()
+            if attempt_no <= 3:
+                points_added = QUIZ_POINTS[difficulty][attempt_no]
+            else:
+                points_added = AFTER_THIRD_ATTEMPT_POINTS
+
+            profile.points += points_added
+            attempt.completed = True
+            profile.save(update_fields=["points"])
 
     attempt.save()
+
 
     return JsonResponse({
         "correct": is_correct,
