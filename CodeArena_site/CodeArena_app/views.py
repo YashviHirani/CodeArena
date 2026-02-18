@@ -176,28 +176,63 @@ from .models import Problem, ProblemSubmission, UserProfile
 @login_required
 def dashboard_view(request):
 
-    # Order users by points (highest first)
+    # 🔹 Fetch filters
+    query = request.GET.get("q", "").strip()
+    difficulty = request.GET.get("difficulty", "all")
+    topic_id = request.GET.get("topic", "all")
+
+    # 🔹 Base queryset
+    problems = Problem.objects.select_related("topic").all()
+
+    # 🔹 Apply filters
+    if query:
+        problems = problems.filter(title__icontains=query)
+
+    if difficulty != "all":
+        problems = problems.filter(difficulty=difficulty)
+
+    if topic_id != "all":
+        problems = problems.filter(topic_id=topic_id)
+
+    # 🔹 Counts
+    total_problems = Problem.objects.count()
+    solved_count = ProblemSubmission.objects.filter(
+        user=request.user,
+        is_correct=True
+    ).count()
+
+    # 🔹 Rank calculation
     ranked_profiles = (
         UserProfile.objects
         .order_by('-points')
         .values_list('user_id', flat=True)
     )
 
-    # Convert to list
     ranked_list = list(ranked_profiles)
 
-    # Get current user rank
     try:
         rank = ranked_list.index(request.user.id) + 1
     except ValueError:
         rank = None
 
     context = {
-        "rank": rank
+        "problems": problems,
+        "topics": Topic.objects.all(),
+        "total_problems": total_problems,
+        "solved_count": solved_count,
+        "rank": rank,
     }
 
-    return render(request, "dashboard.html", context)
+    # 🔹 AJAX response
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string(
+            "problem_table.html",
+            context,
+            request=request
+        )
+        return JsonResponse({"html": html})
 
+    return render(request, "dashboard.html", context)
 # ---------------- PROFILE ----------------
 
 from django.utils.timezone import localtime
