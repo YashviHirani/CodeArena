@@ -204,41 +204,63 @@ from .models import Problem, Topic
 @login_required
 def dashboard_view(request):
 
-    search_query = request.GET.get("q", "").strip()
+    # 🔹 Fetch filters
+    query = request.GET.get("q", "").strip()
     difficulty = request.GET.get("difficulty", "all")
     topic_id = request.GET.get("topic", "all")
 
+    # 🔹 Base queryset
     problems = Problem.objects.select_related("topic").all()
 
-    # 🔍 SEARCH FILTER
-    if search_query:
-        problems = problems.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(topic__name__icontains=search_query)
-        )
+    # 🔹 Apply filters
+    if query:
+        problems = problems.filter(title__icontains=query)
 
-    # 🎯 DIFFICULTY FILTER
     if difficulty != "all":
         problems = problems.filter(difficulty=difficulty)
 
-    # 📚 TOPIC FILTER
     if topic_id != "all":
         problems = problems.filter(topic_id=topic_id)
 
-    # ✅ AJAX RESPONSE
+    # 🔹 Counts
+    total_problems = Problem.objects.count()
+    solved_count = ProblemSubmission.objects.filter(
+        user=request.user,
+        is_correct=True
+    ).count()
+
+    # 🔹 Rank calculation
+    ranked_profiles = (
+        UserProfile.objects
+        .order_by('-points')
+        .values_list('user_id', flat=True)
+    )
+
+    ranked_list = list(ranked_profiles)
+
+    try:
+        rank = ranked_list.index(request.user.id) + 1
+    except ValueError:
+        rank = None
+
+    context = {
+        "problems": problems,
+        "topics": Topic.objects.all(),
+        "total_problems": total_problems,
+        "solved_count": solved_count,
+        "rank": rank,
+    }
+
+    # 🔹 AJAX response
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string(
             "problem_table.html",
-            {"problems": problems},
+            context,
             request=request
         )
         return JsonResponse({"html": html})
 
-    return render(request, "dashboard.html", {
-        "problems": problems,
-        "topics": Topic.objects.all(),
-    })
+    return render(request, "dashboard.html", context)
 # ---------------- PROFILE ----------------
 
 from django.utils.timezone import localtime
