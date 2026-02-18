@@ -175,6 +175,34 @@ from .models import Problem, ProblemSubmission, UserProfile
 from django.db.models import OuterRef, Subquery, Value, CharField
 from django.db.models.functions import Coalesce
 
+# @login_required
+# def dashboard_view(request):
+
+#     # Order users by points (highest first)
+#     ranked_profiles = (
+#         UserProfile.objects
+#         .order_by('-points')
+#         .values_list('user_id', flat=True)
+#     )
+
+#     # Convert to list
+#     ranked_list = list(ranked_profiles)
+
+#     # Get current user rank
+#     try:
+#         rank = ranked_list.index(request.user.id) + 1
+#     except ValueError:
+#         rank = None
+
+#     context = {
+#         "rank": rank
+#     }
+
+#     return render(request, "dashboard.html", context)
+from django.db.models import Q
+from django.template.loader import render_to_string
+from .models import Problem, Topic
+
 @login_required
 def dashboard_view(request):
 
