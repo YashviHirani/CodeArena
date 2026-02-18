@@ -172,6 +172,8 @@ from .models import ProblemSubmission
 
 from django.db.models import Count
 from .models import Problem, ProblemSubmission, UserProfile
+from django.db.models import OuterRef, Subquery, Value, CharField
+from django.db.models.functions import Coalesce
 
 @login_required
 def dashboard_view(request):
@@ -182,7 +184,24 @@ def dashboard_view(request):
     topic_id = request.GET.get("topic", "all")
 
     # 🔹 Base queryset
-    problems = Problem.objects.select_related("topic").all()
+
+    user_submissions = ProblemSubmission.objects.filter(
+        user=request.user,
+        problem=OuterRef("pk")
+    )
+
+    problems = (
+        Problem.objects
+        .select_related("topic")
+        .annotate(
+            status=Coalesce(
+                Subquery(
+                    user_submissions.values("is_correct")[:1]
+                ),
+                Value(None)
+            )
+        )
+    )
 
     # 🔹 Apply filters
     if query:
@@ -233,6 +252,8 @@ def dashboard_view(request):
         return JsonResponse({"html": html})
 
     return render(request, "dashboard.html", context)
+
+
 # ---------------- PROFILE ----------------
 
 from django.utils.timezone import localtime

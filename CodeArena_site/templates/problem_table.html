@@ -2,9 +2,9 @@
 <tr>
 
     <td class="ps-4">
-        {% if problem.status == "solved" %}
+        {% if problem.status == True %}
         <i class="bi bi-check-circle-fill text-success"></i>
-        {% elif problem.status == "wrong" %}
+        {% elif problem.status == False %}
         <i class="bi bi-x-circle-fill text-danger"></i>
         {% else %}
         <i class="bi bi-circle text-secondary opacity-50"></i>
