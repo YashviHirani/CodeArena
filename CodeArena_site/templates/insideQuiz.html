@@ -260,9 +260,13 @@
         }
         function goToSummary() {
             const ids = sessionStorage.getItem("current_quiz_ids");
-            window.location.href = "{% url 'insideQuiz' %}?lang=" + lang;
 
+            if (!ids) {
+                alert("No quiz session found.");
+                return;
+            }
 
+            window.location.href = `/quiz/summary/?ids=${encodeURIComponent(ids)}`;
         }
 
 
