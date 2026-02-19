@@ -34,3 +34,11 @@ from .models import ContactMessage
 class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'subject', 'created_at')
     readonly_fields = ('created_at',)
+
+from .models import ProblemSubmission
+
+@admin.register(ProblemSubmission)
+class ProblemSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'problem', 'language_used', 'is_correct', 'solved_at')
+    list_filter = ('language_used', 'is_correct')
+    search_fields = ('user__username', 'problem__title')

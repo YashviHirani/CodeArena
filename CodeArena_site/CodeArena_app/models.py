@@ -257,6 +257,8 @@ class ProblemSubmission(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     is_correct = models.BooleanField(default=False)
+    # --- to know in which language user solved question ---
+    language_used = models.CharField(max_length=10, blank=True, null=True)
     solved_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

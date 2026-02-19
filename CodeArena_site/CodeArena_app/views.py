@@ -297,18 +297,41 @@ def profile_view(request):
     update_user_streaks(user)
 
     profile = user.profile
+    
+   # --- LANGUAGE CALCULATIONS ---
+# --- 1. JAVA STATS ---
+    total_java = Problem.objects.exclude(starter_code_java="").count()
+    # Using __iexact to be case-insensitive
+    solved_java = ProblemSubmission.objects.filter(
+        user=user, 
+        is_correct=True, 
+        language_used__iexact='java'
+    ).count()
+
+    # --- 2. PYTHON STATS ---
+    total_python = Problem.objects.exclude(starter_code_python="").count()
+    solved_python = ProblemSubmission.objects.filter(
+        user=user, 
+        is_correct=True, 
+        language_used__iexact='python'
+    ).count()
+
+    # --- 3. MATH CALCULATIONS ---
+    java_percent = int((solved_java / total_java) * 100) if total_java > 0 else 0
+    python_percent = int((solved_python / total_python) * 100) if total_python > 0 else 0
+
+    # --- 1. ACCURATE TOTAL SOLVED (Same logic as dashboard) ---
+    # This query counts unique problems you have solved correctly
+    total_solved = ProblemSubmission.objects.filter(
+        user=user,
+        is_correct=True
+    ).count()
 
     # 1. Get unique topic objects for problems solved correctly by this user
     mastered_topics = Topic.objects.filter(
         problems__problemsubmission__user=user,
         problems__problemsubmission__is_correct=True
     ).distinct()
-
-    total_solved = (
-        profile.easy_solved +
-        profile.medium_solved +
-        profile.hard_solved
-    )
 
     submissions = DailySubmission.objects.filter(user=user)
 
@@ -324,6 +347,12 @@ def profile_view(request):
         "member_since": user.date_joined,
         "activity": activity,
         "mastered_topics": mastered_topics,  # 2. Add this to context
+        "java_percent": java_percent,
+        "python_percent": python_percent,
+        "solved_java": solved_java,
+        "total_java": total_java,
+        "solved_python": solved_python,
+        "total_python": total_python,
     }
 
     return render(request, "profile.html", context)
@@ -457,13 +486,6 @@ def edit_profile_view(request):
         return redirect("profile")
 
     return render(request, "edit_profile.html", {"profile": profile, "user": user})
-# ---------------- SIGNAL ----------------
-
-# This guarantees profile creation even if admin creates user
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
 
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -962,7 +984,7 @@ def submit_solution(request, problem_id):
     submission, created = ProblemSubmission.objects.get_or_create(
         user=request.user,
         problem=problem,
-        defaults={"is_correct": False}
+        defaults={"is_correct": False, "language_used": language}
     )
 
     today = now().date()
@@ -982,6 +1004,7 @@ def submit_solution(request, problem_id):
 
         # If not already marked correct
         if not submission.is_correct:
+            submission.language_used = language # Update it if they switch languages and solve it
             submission.is_correct = True
             submission.save(update_fields=["is_correct"])
 

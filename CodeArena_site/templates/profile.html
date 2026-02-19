@@ -429,7 +429,7 @@
                                     <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
                                 </div>
                             </div>
-                            <a href="#" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
                         </div>
                     </li>
                 </ul>
@@ -459,7 +459,7 @@
                     <div class="text-cyan small">Rank #{{ profile.rank }}</div>
                 </div>
             </div>
-        <a href="#" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
+        <a href="{% url 'home' %}" class="btn btn-outline-danger btn-sm w-100 mt-2">Logout</a>
         </div>
     </aside>
 
@@ -565,44 +565,44 @@
             </div>
         </div>
 
-       <div class="row g-4">
+    <div class="row g-4">
       <div class="col-md-6">
-          <div class="plugin-card">
-              <div class="user-content">
-                  <p class="font-heading h4 mb-4 text-white"><i class="bi bi-cpu me-2 text-neon-cyan"></i>Languages</p>
-                  
-                  <div class="mb-4">
+            <div class="plugin-card">
+                <div class="user-content">
+                    <p class="font-heading h4 mb-4 text-white"><i class="bi bi-cpu me-2 text-neon-cyan"></i>Language Mastery</p>
+                    
+                    <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
-                      <span>Data Structures</span>
-                      <span class="text-neon-cyan">85%</span>
+                        <span>Java ({{ solved_java }}/{{ total_java }})</span>
+                        <span class="text-neon-cyan">{{ java_percent }}%</span>
                     </div>
                     <div class="progress-bg">
-                      <div class="progress-fill" style="width: 85%; background: var(--primary-glow); box-shadow: 0 0 10px var(--primary-glow);"></div>
+                        <div class="progress-fill" style="width: {{ java_percent }}%; background: var(--primary-glow); box-shadow: 0 0 10px var(--primary-glow);"></div>
                     </div>
-                  </div>
+                    </div>
 
-                  <div class="mb-4">
+                    <div class="mb-4">
                     <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
-                      <span>Algorithms</span>
-                      <span class="text-neon-cyan">70%</span>
+                        <span>Python ({{ solved_python }}/{{ total_python }})</span>
+                        <span class="text-neon-cyan">{{ python_percent }}%</span>
                     </div>
                     <div class="progress-bg">
-                      <div class="progress-fill" style="width: 70%; background: var(--secondary-glow); box-shadow: 0 0 10px var(--secondary-glow);"></div>
+                        <div class="progress-fill" style="width: {{ python_percent }}%; background: var(--secondary-glow); box-shadow: 0 0 10px var(--secondary-glow);"></div>
                     </div>
-                  </div>
+                    </div>
 
-                  <div class="mb-3">
+                    <div class="mb-3">
                     <div class="d-flex justify-content-between mb-2 small text-uppercase fw-bold" style="color: gray;">
-                      <span>System Design</span>
-                      <span class="text-neon-cyan">45%</span>
+                        <span>Overall Logic</span>
+                        <span class="text-neon-cyan">{{ total_solved }} Solved</span>
                     </div>
                     <div class="progress-bg">
-                      <div class="progress-fill" style="width: 45%; background: #ea00ff; box-shadow: 0 0 10px #ea00ff;"></div>
+                        <div class="progress-fill" style="width: 100%; background: #ea00ff; box-shadow: 0 0 10px #ea00ff;"></div>
                     </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
       <div class="col-md-6">
     <div class="plugin-card">

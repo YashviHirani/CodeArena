@@ -41,7 +41,7 @@ INSTALLED_APPS = [
 # for google auth
     'django.contrib.sites',  # REQUIRED (newly added)
 
-    'CodeArena_app',
+    'CodeArena_app.apps.CodearenaAppConfig',
 
     # ALLAUTH APPS
     'allauth',
