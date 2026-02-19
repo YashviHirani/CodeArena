@@ -663,6 +663,7 @@ def quiz_home(request):
 
     return render(request, "quiz.html", context)
 
+@login_required
 def inside_quiz(request):
     language_id = request.GET.get("lang")
     if not language_id:
@@ -671,53 +672,51 @@ def inside_quiz(request):
     language = get_object_or_404(Language, id=language_id)
 
     # ===============================
-    # ✅ CASE 1: USER IS LOGGED IN
+    # ✅ AUTHENTICATED USER ONLY
     # ===============================
-    if request.user.is_authenticated:
-        solved_correct = UserMCQAttempt.objects.filter(
-            user=request.user,
-            is_correct=True
-        ).values_list("quiz_id", flat=True)
+    solved_correct = UserMCQAttempt.objects.filter(
+        user=request.user,
+        is_correct=True
+    ).values_list("quiz_id", flat=True)
 
-        solved_wrong = UserMCQAttempt.objects.filter(
-            user=request.user,
-            is_correct=False
-        ).values_list("quiz_id", flat=True)
+    solved_wrong = UserMCQAttempt.objects.filter(
+        user=request.user,
+        is_correct=False
+    ).values_list("quiz_id", flat=True)
 
-        wrong_quizzes = Quiz.objects.filter(
-            id__in=solved_wrong,
-            language=language,
-            quiz_type="MCQ"
-        )
+    # Previously wrong quizzes (revision first)
+    wrong_quizzes = Quiz.objects.filter(
+        id__in=solved_wrong,
+        language=language,
+        quiz_type="MCQ"
+    ).select_related("question")
 
-        new_quizzes = Quiz.objects.filter(
-            language=language,
-            quiz_type="MCQ"
-        ).exclude(
-            id__in=solved_correct
-        ).exclude(
-            id__in=solved_wrong
-        )
+    # New unseen quizzes
+    new_quizzes = Quiz.objects.filter(
+        language=language,
+        quiz_type="MCQ"
+    ).exclude(
+        id__in=solved_correct
+    ).exclude(
+        id__in=solved_wrong
+    ).select_related("question")
 
-        quizzes = list(wrong_quizzes) + list(new_quizzes)
-        quizzes = quizzes[:10]
+    # Combine → wrong first, then new
+    quizzes = list(wrong_quizzes) + list(new_quizzes)
+    quizzes = quizzes[:10]
 
     # ===============================
-    # ❌ CASE 2: ANONYMOUS USER
+    # 🏁 ALL QUIZZES COMPLETED
     # ===============================
-    else:
-        quizzes = Quiz.objects.filter(
-            language=language,
-            quiz_type="MCQ"
-        ).order_by("?")[:10]
-
     if not quizzes:
         return render(request, "quiz_completed.html", {
             "message": "All MCQ questions solved 🎯",
-            "sub_message": "Sorry — there are no more MCQ questions available right now. Great job completing them all!"
+            "sub_message": "Great job! You have completed all available MCQ questions for this language."
         })
 
-
+    # ===============================
+    # 🎯 PREPARE DATA FOR FRONTEND
+    # ===============================
     quiz_data = [
         {
             "quiz_id": quiz.id,
@@ -735,7 +734,7 @@ def inside_quiz(request):
     return render(request, "insideQuiz.html", {
         "language": language,
         "quiz_data": json.dumps(quiz_data),
-        "is_authenticated": request.user.is_authenticated
+        "is_authenticated": True
     })
 
 def quiz_completed(request):
