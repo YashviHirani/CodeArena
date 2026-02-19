@@ -741,6 +741,7 @@ def quiz_completed(request):
     return render(request, "quiz_completed.html")
 
 
+@login_required
 def debugging_quiz(request):
     lang_id = request.GET.get("lang")
     if not lang_id:
@@ -749,75 +750,76 @@ def debugging_quiz(request):
     language = get_object_or_404(Language, id=lang_id)
 
     # ==========================
-    # CASE 1: LOGGED-IN USER
+    # ✅ AUTHENTICATED USER ONLY
     # ==========================
-    if request.user.is_authenticated:
 
-        solved_correct = UserMCQAttempt.objects.filter(
-            user=request.user,
-            quiz__quiz_type="DEBUG",
-            is_correct=True
-        ).values_list("quiz_id", flat=True)
+    solved_correct = UserMCQAttempt.objects.filter(
+        user=request.user,
+        quiz__quiz_type="DEBUG",
+        is_correct=True
+    ).values_list("quiz_id", flat=True)
 
-        solved_wrong = UserMCQAttempt.objects.filter(
-            user=request.user,
-            quiz__quiz_type="DEBUG",
-            is_correct=False
-        ).values_list("quiz_id", flat=True)
+    solved_wrong = UserMCQAttempt.objects.filter(
+        user=request.user,
+        quiz__quiz_type="DEBUG",
+        is_correct=False
+    ).values_list("quiz_id", flat=True)
 
-        wrong_quizzes = Quiz.objects.filter(
-            id__in=solved_wrong,
-            quiz_type="DEBUG",
-            language=language
-        )
+    # Previously wrong debugging quizzes (revision first)
+    wrong_quizzes = Quiz.objects.filter(
+        id__in=solved_wrong,
+        quiz_type="DEBUG",
+        language=language
+    ).select_related("question")
 
-        new_quizzes = Quiz.objects.filter(
-            quiz_type="DEBUG",
-            language=language
-        ).exclude(id__in=solved_correct).exclude(id__in=solved_wrong)
+    # New unseen debugging quizzes
+    new_quizzes = Quiz.objects.filter(
+        quiz_type="DEBUG",
+        language=language
+    ).exclude(
+        id__in=solved_correct
+    ).exclude(
+        id__in=solved_wrong
+    ).select_related("question")
 
-        quizzes = list(wrong_quizzes) + list(new_quizzes)
-        quizzes = quizzes[:10]
+    # Combine → wrong first, then new
+    quizzes = list(wrong_quizzes) + list(new_quizzes)
+    quizzes = quizzes[:10]
 
     # ==========================
-    # CASE 2: GUEST USER
+    # 🏁 ALL QUIZZES COMPLETED
     # ==========================
-    else:
-        quizzes = Quiz.objects.filter(
-            quiz_type="DEBUG",
-            language=language
-        ).order_by("?")[:10]
-
     if not quizzes:
         return render(request, "quiz_completed.html", {
             "message": "All Debugging questions solved 🎉",
-            "sub_message": "Sorry — you’ve completed all available debugging challenges. New ones coming soon!"
+            "sub_message": "Great job! You’ve completed all available debugging challenges."
         })
 
-
-
-    quiz_data = []
-    for quiz in quizzes:
-        q = quiz.question
-        quiz_data.append({
+    # ==========================
+    # 🎯 PREPARE DATA FOR FRONTEND
+    # ==========================
+    quiz_data = [
+        {
             "quiz_id": quiz.id,
-            "question": q.question_text,
-            "code_snippet": q.code_snippet,   # 👈 ADD THIS
+            "question": quiz.question.question_text,
+            "code_snippet": quiz.question.code_snippet,
             "options": [
-                q.option_a,
-                q.option_b,
-                q.option_c,
-                q.option_d,
+                quiz.question.option_a,
+                quiz.question.option_b,
+                quiz.question.option_c,
+                quiz.question.option_d,
             ],
-            "correct": q.correct_option,
-        })
-
+            "correct": quiz.question.correct_option,  # if needed by frontend
+        }
+        for quiz in quizzes
+    ]
 
     return render(request, "DebuggingQuiz.html", {
         "quiz_data": json.dumps(quiz_data),
         "lang_id": lang_id,
-        "is_authenticated": request.user.is_authenticated
+        "is_authenticated": True
     })
+
 
 @login_required
 def quiz_summary(request):
