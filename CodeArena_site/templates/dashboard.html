@@ -100,7 +100,17 @@
             font-family: 'Orbitron', sans-serif;
             background: linear-gradient(to right, #ffffff, #8a2be2);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .hero-gradient-text {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(90deg, #b7fce7 0%, #20c997 50%, #8f94fb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
 
         /* --- 3. GLASSMORPHISM CARDS (From Home.html) --- */
@@ -431,11 +441,9 @@
 
     <main class="main-content">
 
-        <div class="d-flex justify-content-between align-items-end mb-5">
-            <div>
-                <h2 class="fw-bold gradient-heading text-start mb-2">Dashboard</h2>
-                <p class="text-secondary mb-0">Welcome back, track your progress and solve new challenges.</p>
-            </div>
+        <div class="text-center mb-5 mt-4">
+            <h1 class="display-4 fw-bold hero-gradient-text mb-3">Dashboard</h1>
+            <p class="text-secondary fs-5 mb-0">Welcome back, track your progress and solve new challenges.</p>
         </div>
 
         <div class="row g-4 mb-5">

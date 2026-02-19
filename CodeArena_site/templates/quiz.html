@@ -333,25 +333,19 @@
                 </button>
                 <div class="collapse navbar-collapse" id="mobileMenu">
                     <ul class="navbar-nav mt-3">
-                        </li>
-                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i
-                                    class="bi bi-person"></i> Profile</a>
-                        </li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-cpu"></i> Quiz</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-trophy"></i>
-                                Leaderboard</a></li>
-                        <li class="nav-item"><a class="nav-link-custom" href="#"><i class="bi bi-gear"></i> Settings</a>
-                        </li>
-                        <hr class="border-secondary opacity-25">
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'dashboard' %}"><i class="bi bi-terminal"></i> Problems</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz</a></li>
+                        <li class="nav-item"><a class="nav-link-custom" href="{% url 'leaderboard' %}"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                        <hr class="border-secondary opacity-25"> 
                         <li class="nav-item d-flex align-items-center gap-3 py-2 px-3">
-                            <div class="avatar-circle" style="width:35px; height:35px; font-size: 0.8rem;">JD</div>
-                            <div>
-                                <div class="fw-bold text-white small">Demo User</div>
-                                <div class="text-cyan" style="font-size: 0.7rem;">Rank #001</div>
+                            <div class="avatar-circle">
+                                {{ user.username|slice:":2"|upper }}
                             </div>
-                        </li>
-                        <li class="nav-item mt-2 px-3"><a href="#"
-                                class="btn btn-outline-danger btn-sm w-100">Logout</a>
+                            <div>
+                                <div class="fw-bold text-white">{{ user.username }}</div>
+                                <div class="text-cyan small">Rank #{{ user.profile.rank }}</div>
+                            </div>
                         </li>
                     </ul>
                 </div>

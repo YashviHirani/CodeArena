@@ -109,13 +109,16 @@ def signup_view(request):
             })
 
         # ✅ CREATE USER
+         # 1. Create the user
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
 
-        login(request, user)
+        # 2. Specify the backend to avoid the ValueError
+        # We use the standard Django ModelBackend
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect("complete_profile")
 
 

@@ -102,7 +102,17 @@
             font-family: 'Orbitron', sans-serif;
             background: linear-gradient(to right, #ffffff, #8a2be2);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .hero-gradient-text {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(90deg, #b7fce7 0%, #20c997 50%, #8f94fb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
 
         /* --- 3. GLASSMORPHISM CARDS --- */
@@ -258,7 +268,10 @@
             text-shadow: 0 0 10px rgba(255, 140, 66, 0.3);
         }
 
-       
+        /* Make all non-top-3 ranks white (keep top 3 colors) */
+        #leaderboard-body td.ps-4.fw-bold:not(.rank-gold):not(.rank-silver):not(.rank-bronze) {
+            color: #ffffff !important;
+        }
 
         .main-content {
             padding: 20px;
@@ -330,9 +343,9 @@
 </aside>
 
     <main class="main-content">
-        <div class="mb-5">
-            <h2 class="fw-bold gradient-heading text-start mb-2">Hall of Fame</h2>
-            <p class="text-secondary mb-0">The elite coders dominating the CodeArena leaderboard.</p>
+        <div class="text-center mb-5 mt-4">
+            <h1 class="display-4 fw-bold hero-gradient-text mb-3">Hall of Fame</h1>
+            <p class="text-secondary fs-5 mb-0">The elite coders dominating the CodeArena leaderboard.</p>
         </div>
 
         {% if top_users %}
@@ -357,6 +370,7 @@
                     <h5 class="fw-bold font-orbitron mb-1 text-white">
                         {{ top_users.1.user.username }}
                     </h5>
+                       <p class="text-cyan small">Rank #2</p>
                     <div class="mt-2 text-cyan fw-bold">
                         {{ top_users.1.points }} PTS
                     </div>
@@ -419,6 +433,7 @@
                     <h5 class="fw-bold font-orbitron mb-1 text-white">
                         {{ top_users.2.user.username }}
                     </h5>
+                        <p class="text-cyan small">Rank #3</p>
                     <div class="mt-2 text-cyan fw-bold">
                         {{ top_users.2.points }} PTS
                     </div>
