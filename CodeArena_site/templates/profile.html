@@ -31,7 +31,7 @@
             min-height: 100vh;
         }
 
-        /* The Radial Background Wrapper */
+        /* The Radial Background Wrapper --> for whole page background*/
         .bg-radial {
             background: radial-gradient(circle at top center, #1a1a2e 0%, #000000 70%);
             min-height: 100vh;
@@ -43,23 +43,22 @@
         }
 
         /* --- NAVBAR & SIDEBAR --- */
-        /* --- NAVBAR & SIDEBAR --- */
 .navbar {
     background: rgba(10, 10, 20, 0.85);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.navbar-brand-custom {
+
+.navbar-brand {
     font-family: 'Orbitron', sans-serif;
     font-size: 1.5rem;
-    letter-spacing: 1px;
-    background: linear-gradient(90deg, #20c997, #8f94fb);
+    font-weight: bold;
+    background: linear-gradient(90deg, #20c997, #4e54c8, #8f94fb, #a084f5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 15px rgba(32, 201, 151, 0.3);
 }
-
+   
 .sidebar {
     width: 280px;
     background: rgba(15, 15, 26, 0.8);
@@ -137,28 +136,30 @@
             margin-left: 0; 
         }
 
+        /* for laptop screen */
         @media (min-width: 992px) {
             .main-content {
                 margin-left: var(--sidebar-width);
                 padding: 40px;
-                max-width: calc(100vw - var(--sidebar-width));
+                max-width: calc(100vw - var(--sidebar-width));  /*  main content width is screen width minus sidebar width */
             }
         }
 
+        /* for mobile screen */
         @media (max-width: 991px) {
-            .sidebar { display: none !important; }
+            .sidebar { display: none; }
             .user-content {
                 justify-content: center;
                 text-align: center;
             }
             .user-content img {
-                margin-right: 0 !important;
+                margin-right: 0;
                 margin-bottom: 20px;
             }
             .rank-pulse {
-                position: relative !important;
-                top: 0 !important;
-                right: 0 !important;
+                position: relative;
+                top: 0;
+                right: 0;
                 margin-bottom: 1rem;
             }
         }
@@ -207,7 +208,7 @@
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #000 !important;
+            color: #000;
             border-radius: 50px;
             background: linear-gradient(45deg, var(--primary-glow), var(--secondary-glow));
             z-index: 10;
@@ -254,13 +255,13 @@
         }
 
         .day { width: 12px; height: 12px; border-radius: 3px; transition: 0.2s; }
-        .day:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 0 8px #fff; }
+        .day:hover { transform: scale(1.2); z-index: 10;}
         
         .l0 { background: rgba(255,255,255,0.05); }
         .l1 { background: rgba(32, 201, 151, 0.2); }
         .l2 { background: rgba(32, 201, 151, 0.5); }
         .l3 { background: rgba(32, 201, 151, 0.8); }
-        .l4 { background: #20c997; box-shadow: 0 0 10px var(--primary-glow); }
+        .l4 { background: #20c997; }
 
         .progress-bg {
             height: 6px; 
@@ -417,7 +418,7 @@
                     <li class="nav-item"><a class="nav-link-custom" href="{% url 'edit_profile' %}"><i class="bi bi-person"></i> Edit Profile</a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="{% url 'quiz_home' %}"><i class="bi bi-cpu"></i> Quiz </a></li>
                     <li class="nav-item"><a class="nav-link-custom" href="{% url 'leaderboard' %}"><i class="bi bi-trophy"></i> LeaderBoard </a></li>
-                     <hr class="border-secondary opacity-25"> 
+                    <hr class="border-secondary opacity-25"> 
                     <li class="nav-item d-flex align-items-center gap-3 py-2 px-3">
                         <div class="p-4 mt-auto border-top border-white border-opacity-10">
                             <div class="d-flex align-items-center gap-3 mb-3">
@@ -555,12 +556,12 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <span class="h4 font-heading mb-0 text-white">📅 Activity Calendar</span>
                         <div class="d-flex align-items-center gap-1 small text-muted">
-                            <span>Less</span>
+                            <span style="color:gray">Less</span>
                             <div class="day l0"></div><div class="day l1"></div><div class="day l2"></div><div class="day l3"></div><div class="day l4"></div>
-                            <span>More</span>
+                            <span style="color:gray">More</span>
                         </div>
                     </div>
-                    <div class="calendar-body" id="calendar"></div>
+                    <div class="calendar-body" id="calendar"></div> <!-- this empty div will be filled by javascript -->
                 </div>
             </div>
         </div>
@@ -605,23 +606,23 @@
         </div>
 
       <div class="col-md-6">
-    <div class="plugin-card">
-        <div class="user-content">
-            <p class="font-heading h4 mb-4 text-white">
-                <i class="bi bi-journal-code me-2 text-purple"></i>Topics Covered
-            </p>
-            <div class="d-flex flex-wrap gap-2">
-                {% if mastered_topics %}
-                    {% for topic in mastered_topics %}
-                        <span class="topic-tag">{{ topic.name }}</span>
-                    {% endfor %}
-                {% else %}
-                    <p class="small text-muted italic">Solve problems to unlock topics!</p>
-                {% endif %}
+        <div class="plugin-card">
+            <div class="user-content">
+                <p class="font-heading h4 mb-4 text-white">
+                    <i class="bi bi-journal-code me-2 text-purple"></i>Topics Covered
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if mastered_topics %}
+                        {% for topic in mastered_topics %}
+                            <span class="topic-tag">{{ topic.name }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="small text-muted italic">Solve problems to unlock topics!</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
     </div>
     <div class="row mt-4 mb-4">
             <div class="col-12">
@@ -735,18 +736,20 @@
       const daysInMonth = getDaysInMonth(currentYear, index);
       const firstDay = new Date(currentYear, index, 1).getDay();
 
+     // adding hidden days 
       for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement("div");
         empty.style.visibility = "hidden";
         monthGrid.appendChild(empty);
       }
 
+     // adding visible real days of month
       for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
         const day = document.createElement("div");
-        const dateKey = `${currentYear}-${String(index+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+        const dateKey = `${currentYear}-${String(index+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`; // 2026-02-05 (02--> padstart)
         const level = activityData[dateKey] || 0;
-        day.className = `day l${level}`;
-        day.title = `${month} ${dayNum}, ${currentYear}`;
+        day.className = `day l${level}`; // Higher level → darker green square
+        day.title = `${month} ${dayNum}, ${currentYear}`; // When user hovers mouse, it shows Feb 20, 2026
         monthGrid.appendChild(day);
       }
 
@@ -806,7 +809,6 @@
         });
     }
 
-
     // Allow pressing 'Enter' in the Add Skill box
     document.getElementById('newSkillInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
@@ -834,6 +836,7 @@
         }
     });
 
+    // func for deleting skills
     function deleteSkill() {
         if (!currentSkillElement) return;
 
@@ -868,7 +871,6 @@
             alert(err.message);
         });
     }
-
 </script>
 </body>
 </html>

@@ -1,16 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import UserProfile, Problem, Topic, DailySubmission, ProblemSubmission
+from .models import UserProfile, Problem, Topic, DailySubmission, ProblemSubmission,ContactMessage
 from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Q
+from django.db.models import Q,OuterRef, Subquery, Value, CharField,Count
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import localtime, now  # Required for submit_solution
 from datetime import date, datetime, timedelta
 import json
+from django.template.loader import render_to_string
+from django.db.models.functions import Coalesce
+from django.db import transaction
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
 
 from .bst import ProblemBST
 
@@ -41,15 +47,12 @@ def home_view(request):
 
 User = get_user_model()
 
-from django.shortcuts import render
-from .models import Problem  # Import your Problem model
-
 def guestdashboard(request):
     # Fetch a problem to display. 
     # For a guest dashboard, maybe you want the first problem or a "Daily Challenge"
     problem = Problem.objects.first() 
 
-    # SAFETY CHECK: If the database is empty, problem will be None
+    # if the database is empty, problem will be None
     if not problem:
         # Handle empty DB (optional: create a dummy placeholder or redirect)
         pass 
@@ -67,13 +70,13 @@ def login_view(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        # 🔍 Check if user exists
+        # check if user exists
         if not User.objects.filter(username=username).exists():
             return render(request, "login.html", {
                 "error": "No user found"
             })
 
-        # 🔐 Verify encrypted password
+        # verify encrypted password
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -96,53 +99,49 @@ def signup_view(request):
         email = request.POST["email"].strip()
         password = request.POST["password"]
 
-        # ✅ CHECK USERNAME
+        # check username
         if User.objects.filter(username=username).exists():
             return render(request, "signup.html", {
                 "error": "Username already exists. Please choose another."
             })
 
-        # ✅ CHECK EMAIL (optional but recommended)
+        # check email
         if User.objects.filter(email=email).exists():
             return render(request, "signup.html", {
                 "error": "Email already registered."
             })
 
-        # ✅ CREATE USER
-         # 1. Create the user
+        # create the user
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
 
-        # 2. Specify the backend to avoid the ValueError
-        # We use the standard Django ModelBackend
+        # specify the backend to avoid the ValueError
+        # we use the standard Django ModelBackend
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect("complete_profile")
-
-
+    
     return render(request, "signup.html")
-
-# from django.contrib.auth.decorators import login_required
 
 @login_required
 def complete_profile(request):
     profile = request.user.profile
 
-    # If already completed → go dashboard
+    # if already completed --> go dashboard
     if profile.profile_completed:
         return redirect("dashboard")
 
     if request.method == "POST":
 
-        # If skip button clicked
+        # if skip button clicked
         if "skip" in request.POST:
             profile.profile_completed = True
             profile.save()
             return redirect("dashboard")
 
-        # Save optional fields
+        # save optional fields
         profile.profile_img = request.FILES.get("profile_img") or profile.profile_img
         profile.full_name = request.POST.get("full_name", "")
         profile.summary = request.POST.get("summary", "")
@@ -159,63 +158,16 @@ def complete_profile(request):
 
     return render(request, "onboarding.html")
 
-
-
 # ---------------- DASHBOARD ----------------
-
-from django.db.models import Q
-from django.template.loader import render_to_string
-from .models import Problem, Topic
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.http import JsonResponse
-
-from .models import ProblemSubmission
-
-from django.db.models import Count
-from .models import Problem, ProblemSubmission, UserProfile
-from django.db.models import OuterRef, Subquery, Value, CharField
-from django.db.models.functions import Coalesce
-
-# @login_required
-# def dashboard_view(request):
-
-#     # Order users by points (highest first)
-#     ranked_profiles = (
-#         UserProfile.objects
-#         .order_by('-points')
-#         .values_list('user_id', flat=True)
-#     )
-
-#     # Convert to list
-#     ranked_list = list(ranked_profiles)
-
-#     # Get current user rank
-#     try:
-#         rank = ranked_list.index(request.user.id) + 1
-#     except ValueError:
-#         rank = None
-
-#     context = {
-#         "rank": rank
-#     }
-
-#     return render(request, "dashboard.html", context)
-from django.db.models import Q
-from django.template.loader import render_to_string
-from .models import Problem, Topic
-
 @login_required
 def dashboard_view(request):
 
-    # 🔹 Fetch filters
+    # Fetch filters
     query = request.GET.get("q", "").strip()
     difficulty = request.GET.get("difficulty", "all")
     topic_id = request.GET.get("topic", "all")
 
-    # 🔹 Base queryset
-
+    # Base queryset
     user_submissions = ProblemSubmission.objects.filter(
         user=request.user,
         problem=OuterRef("pk")
@@ -234,7 +186,7 @@ def dashboard_view(request):
         )
     )
 
-    # 🔹 Apply filters
+    # Apply filters
     if query:
         problems = problems.filter(title__icontains=query)
 
@@ -244,14 +196,14 @@ def dashboard_view(request):
     if topic_id != "all":
         problems = problems.filter(topic_id=topic_id)
 
-    # 🔹 Counts
+    # Counts
     total_problems = Problem.objects.count()
     solved_count = ProblemSubmission.objects.filter(
         user=request.user,
         is_correct=True
     ).count()
 
-    # 🔹 Rank calculation
+    # Rank calculation
     ranked_profiles = (
         UserProfile.objects
         .order_by('-points')
@@ -273,8 +225,9 @@ def dashboard_view(request):
         "rank": rank,
     }
 
-    # 🔹 AJAX response
+    # AJAX response
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        # frontend replaces table without refreshing page
         html = render_to_string(
             "problem_table.html",
             context,
@@ -286,23 +239,15 @@ def dashboard_view(request):
 
 
 # ---------------- PROFILE ----------------
-
-from django.utils.timezone import localtime
-from datetime import date
-
-from .models import DailySubmission
-
 @login_required
 def profile_view(request):
-    user = request.user
-    
+    user = request.user # gets the currently logged-in user
     # 🔥 Ensure streaks are updated (e.g., if a streak broke yesterday)
     update_user_streaks(user)
-
-    profile = user.profile
+    profile = user.profile # made obj of UserProfile of particular user so now we have access to all fields of that model
     
    # --- LANGUAGE CALCULATIONS ---
-# --- 1. JAVA STATS ---
+    # --- 1. JAVA STATS ---
     total_java = Problem.objects.exclude(starter_code_java="").count()
     # Using __iexact to be case-insensitive
     solved_java = ProblemSubmission.objects.filter(
@@ -324,18 +269,19 @@ def profile_view(request):
     python_percent = int((solved_python / total_python) * 100) if total_python > 0 else 0
 
     # --- 1. ACCURATE TOTAL SOLVED (Same logic as dashboard) ---
-    # This query counts unique problems you have solved correctly
+    # counts unique problems solved correctly
     total_solved = ProblemSubmission.objects.filter(
         user=user,
         is_correct=True
     ).count()
 
-    # 1. Get unique topic objects for problems solved correctly by this user
+    # get unique topic objects for problems solved correctly by current user
     mastered_topics = Topic.objects.filter(
         problems__problemsubmission__user=user,
         problems__problemsubmission__is_correct=True
     ).distinct()
 
+    # to get daily submissions
     submissions = DailySubmission.objects.filter(user=user)
 
     activity = {
@@ -349,7 +295,7 @@ def profile_view(request):
         "total_solved": total_solved,
         "member_since": user.date_joined,
         "activity": activity,
-        "mastered_topics": mastered_topics,  # 2. Add this to context
+        "mastered_topics": mastered_topics,
         "java_percent": java_percent,
         "python_percent": python_percent,
         "solved_java": solved_java,
@@ -361,35 +307,23 @@ def profile_view(request):
     return render(request, "profile.html", context)
 
 # ---------------- QUIZ ----------------
-
-from django.contrib.auth.decorators import login_required
-from .models import UserProfile
-from django.template.loader import render_to_string
-from django.http import JsonResponse
-from django.db.models import Q
-
 @login_required
 def leaderboard_view(request):
     query = request.GET.get("q", "").strip()
 
-    # =========================
-    # 🔥 GLOBAL RANKING (Cards)
-    # =========================
+    # global ranking(cards)
+
     global_profiles = (
         UserProfile.objects
         .filter(points__gt=0)
         .select_related("user")
-        .order_by("rank")   # ✅ ORDER BY RANK
+        .order_by("rank")   
     )
 
     ranked_global = global_profiles
+    top_users = ranked_global[:3]  # always global top 3
 
-    top_users = ranked_global[:3]  # 🔥 Always global top 3
-
-
-    # =========================
-    # 🔍 FILTERED TABLE SEARCH
-    # =========================
+    # filtered table search
     filtered_profiles = ranked_global
 
     if query:
@@ -398,9 +332,7 @@ def leaderboard_view(request):
             if query.lower() in p.user.username.lower()
         ]
 
-    # =========================
-    # AJAX RESPONSE (TABLE ONLY)
-    # =========================
+    # AJAX response(table only)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         table_html = render_to_string(
             "leaderboard_table.html",
@@ -417,13 +349,10 @@ def leaderboard_view(request):
         "top_users": top_users       # always global
     })
 
-
-from django.db import transaction
-
 def recalculate_ranks():
     """
     Dense ranking:
-    Same points → same rank.
+    Same points --> same rank.
     """
 
     with transaction.atomic():
@@ -490,14 +419,7 @@ def edit_profile_view(request):
 
     return render(request, "edit_profile.html", {"profile": profile, "user": user})
 
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-
 # ------------------- Update skill in database -----------------------
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-
 @login_required
 @require_POST
 def update_skills(request):
@@ -508,10 +430,10 @@ def update_skills(request):
     if not skill:
         return JsonResponse({"error": "Skill cannot be empty"}, status=400)
 
-    # Normalize (case-insensitive handling)
+    # normalize skills (case-insensitive handling)
     skill_normalized = skill.lower()
 
-    # Convert existing skills to normalized list
+    # convert existing skills to normalized list
     skills_list = [
         s.strip().lower()
         for s in profile.skills.split(",")
@@ -524,7 +446,6 @@ def update_skills(request):
                 {"error": "Skill already exists"},
                 status=409
             )
-
         skills_list.append(skill_normalized)
 
     elif action == "remove":
@@ -546,6 +467,7 @@ def start_quiz(request):
     if request.method == "POST":
         lang_id = request.POST.get('language')
         return redirect(f'/insideQuiz?lang={lang_id}')
+    
 @csrf_exempt
 @login_required
 def save_mcq_answer(request):
@@ -572,7 +494,7 @@ def save_mcq_answer(request):
         }
     )
 
-    # ================= UPDATE ATTEMPT =================
+    # ================= update attempt =================
     if not created:
         attempt.attempts += 1
         attempt.selected_option = selected_option
@@ -606,8 +528,6 @@ def save_mcq_answer(request):
         "quiz_type": quiz.quiz_type,
     })
 
-
-
 def get_quiz_questions(user, language, limit=10):
     attempted_wrong = UserMCQAttempt.objects.filter(
         user=user,
@@ -621,19 +541,11 @@ def get_quiz_questions(user, language, limit=10):
 
     return quizzes
 
-# Quiz Methods 01.1
-
 def quiz(request):
     return render(request, "quiz.html")
 
-
-from django.db.models import Q
-from datetime import datetime, timedelta
-import json
-
 def quiz_home(request):
     user = request.user
-
     # ================= DAILY POINTS (Last 7 Days) =================
     today = datetime.today().date()
     last_7_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
@@ -652,7 +564,7 @@ def quiz_home(request):
 
         mcq_points.append(daily_points)
 
-    # ================= DEBUGGING ATTEMPT BREAKDOWN =================
+    # ================= debugging attempt breakdown =================
     attempts = UserMCQAttempt.objects.filter(user=user)
 
     def calc_stats(qs):
@@ -696,9 +608,7 @@ def inside_quiz(request):
 
     language = get_object_or_404(Language, id=language_id)
 
-    # ===============================
-    # ✅ AUTHENTICATED USER ONLY
-    # ===============================
+    # authenticated user only
     solved_correct = UserMCQAttempt.objects.filter(
         user=request.user,
         is_correct=True
@@ -726,22 +636,18 @@ def inside_quiz(request):
         id__in=solved_wrong
     ).select_related("question")
 
-    # Combine → wrong first, then new
+    # Combine --> wrong first, then new
     quizzes = list(wrong_quizzes) + list(new_quizzes)
     quizzes = quizzes[:10]
 
-    # ===============================
-    # 🏁 ALL QUIZZES COMPLETED
-    # ===============================
+    # all quizzes completed
     if not quizzes:
         return render(request, "quiz_completed.html", {
             "message": "All MCQ questions solved 🎯",
             "sub_message": "Great job! You have completed all available MCQ questions for this language."
         })
 
-    # ===============================
-    # 🎯 PREPARE DATA FOR FRONTEND
-    # ===============================
+    # prepare data for frontend
     quiz_data = [
         {
             "quiz_id": quiz.id,
@@ -765,7 +671,6 @@ def inside_quiz(request):
 def quiz_completed(request):
     return render(request, "quiz_completed.html")
 
-
 @login_required
 def debugging_quiz(request):
     lang_id = request.GET.get("lang")
@@ -774,9 +679,7 @@ def debugging_quiz(request):
 
     language = get_object_or_404(Language, id=lang_id)
 
-    # ==========================
-    # ✅ AUTHENTICATED USER ONLY
-    # ==========================
+    # authenticated user only 
 
     solved_correct = UserMCQAttempt.objects.filter(
         user=request.user,
@@ -807,22 +710,19 @@ def debugging_quiz(request):
         id__in=solved_wrong
     ).select_related("question")
 
-    # Combine → wrong first, then new
+    # Combine --> wrong first, then new
     quizzes = list(wrong_quizzes) + list(new_quizzes)
     quizzes = quizzes[:10]
 
-    # ==========================
-    # 🏁 ALL QUIZZES COMPLETED
-    # ==========================
+    # all quizzes completed
+
     if not quizzes:
         return render(request, "quiz_completed.html", {
             "message": "All Debugging questions solved 🎉",
             "sub_message": "Great job! You’ve completed all available debugging challenges."
         })
 
-    # ==========================
-    # 🎯 PREPARE DATA FOR FRONTEND
-    # ==========================
+    # prepare data for frontend
     quiz_data = [
         {
             "quiz_id": quiz.id,
@@ -873,7 +773,7 @@ def quiz_summary(request):
     for att in attempts:
         q = att.quiz.question
         summary.append({
-            "code_snippet": getattr(q, "code_snippet", ""),   # safe access
+            "code_snippet": getattr(q, "code_snippet", ""),
             "quiz_type": att.quiz.quiz_type,
             "question": q.question_text,
             "options": {
@@ -923,16 +823,15 @@ def get_quizzes(user, language, quiz_type, limit=10):
 
 @login_required
 def problem_detail(request, problem_id):
-    problem = get_object_or_404(Problem, id=problem_id)
 
-    example = getattr(problem, "example", None)   # safe OneToOne
-    testcases = problem.testcases.all()            # safe FK
+    problem = get_object_or_404(Problem, id=problem_id)
+    example = getattr(problem, "example", None) 
+    testcases = problem.testcases.all()            
 
     context = {
         "problem": problem,
         "example": example,
         "testcases": testcases,
-        # Pass starter code from views.py
         "starter_code": {
             "java": problem.starter_code_java,
             "python": problem.starter_code_python,
@@ -944,34 +843,37 @@ def problem_detail(request, problem_id):
 @csrf_exempt
 @login_required
 def submit_solution(request, problem_id):
-    from .judge import judge_code  # Keeping your judge import
+    from .judge import judge_code  # imports judge function
 
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
 
+    # frontend sends json like {"code": "print(5)","language": "python"} 
     try:
-        data = json.loads(request.body)
+        data = json.loads(request.body) # json.loads() --> converts it to Python dictionary & request.body = raw bytes
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-    # 1️⃣ DATA RETRIEVAL
-    code = data.get("code")
-    language = data.get("language")
-    problem = get_object_or_404(Problem, id=problem_id)
-    profile = request.user.profile
+    # 1. collecting data
+    code = data.get("code") # gets user code
+    language = data.get("language") # gets selected code language by user
+    problem = get_object_or_404(Problem, id=problem_id) # gets the problem solved by user
+    profile = request.user.profile # gets logged in user profile
 
+    # prevents empty submission.
     if not code or not language:
         return JsonResponse({"error": "Missing code or language"}, status=400)
 
-    # 2️⃣ RUN THE JUDGE (Your Judge Logic)
+    # 2. run the judge
     testcases = problem.testcases.all()
     result = judge_code(language, code, testcases)
 
-    # 3️⃣ UPDATE SUBMISSION STATS (Your Submission Logic)
+    # 3. now we update the total submission for user
     profile.total_submissions += 1
     
     #----------- for streak ------------------
     today = now().date()
+    # if entry exists for today then increment counter otherwise create and increment counter(daily count+=1)
     daily, _ = DailySubmission.objects.get_or_create(
         user=request.user,
         date=today
@@ -981,8 +883,8 @@ def submit_solution(request, problem_id):
 
     #----------------------------------------
 
-    # 4️⃣ HANDLE VERDICT
-    response = {"verdict": result["verdict"]}
+    # 4. handle verdict
+    response = {"verdict": result["verdict"]} # creates response dictionary to send back to frontend.
 
     submission, created = ProblemSubmission.objects.get_or_create(
         user=request.user,
@@ -990,18 +892,11 @@ def submit_solution(request, problem_id):
         defaults={"is_correct": False, "language_used": language}
     )
 
-    today = now().date()
-    daily, _ = DailySubmission.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
-    daily.count += 1
-    daily.save()
-
-    # 🔥 NEW: Recalculate streaks after updating daily submission
+    # recalculate streaks after updating daily submission
     update_user_streaks(request.user)
 
     if result["verdict"] == "Accepted":
+        # sends performance metrics to frontend.
         response["time_ms"] = result["time_ms"]
         response["memory_mb"] = result["memory_mb"]
 
@@ -1009,7 +904,8 @@ def submit_solution(request, problem_id):
         if not submission.is_correct:
             submission.language_used = language # Update it if they switch languages and solve it
             submission.is_correct = True
-            submission.save(update_fields=["is_correct"])
+            # submission.save(update_fields=["is_correct"])
+            submission.save()
 
             points = PROBLEM_POINTS.get(problem.difficulty, 10)
             profile.points += points
@@ -1027,22 +923,19 @@ def submit_solution(request, problem_id):
             response["status"] = "already_solved"
 
     else:
-        # If failed attempt → ensure submission exists but not correct
+        # If failed attempt --> ensure submission exists but not correct
         if created:
             submission.is_correct = False
             submission.save(update_fields=["is_correct"])
 
+        # for frontend to show exact error and failed testcase
         response["failed_testcase"] = result.get("failed_testcase")
         response["error"] = result.get("error")
 
     profile.save()
     recalculate_ranks()
 
-    return JsonResponse(response)
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import ContactMessage
+    return JsonResponse(response) # sends JSON back to frontend --> frontend receives and updates UI
 
 def contact_submit(request):
     if request.method == "POST":
@@ -1061,35 +954,35 @@ def contact_submit(request):
         new_message.save()
 
         messages.success(request, "Your message has been sent successfully!")
-        return redirect('home') # Or wherever your landing page is
+        return redirect('home') 
     
     return redirect('home')
 
+# this func recalculates the current streak, max streak and total active days for a user --> called after every submission
 def update_user_streaks(user):
     profile = user.profile
-    # Get all submission dates in descending order
-    # dates = list(DailySubmission.objects.filter(user=user).order_by('-date').values_list('date', flat=True))
-    # Get all unique submission dates
+    # filters DailySubmission table for user & orders by date descending (latest first)
     dates_query = DailySubmission.objects.filter(user=user).order_by('-date')
-    dates = list(dates_query.values_list('date', flat=True))
+    dates = list(dates_query.values_list('date', flat=True)) # extracts only date field and converts QuerySet to python list
 
+    # if user has no submission history then :-
     if not dates:
         profile.current_streak = 0
         profile.max_streak = 0
-        profile.total_active_days = 0 # Reset if no history
+        profile.total_active_days = 0 
         profile.save()
         return
 
-    # 🔥 NEW: Calculate Total Active Days
-    # Since each DailySubmission represents a unique day, the count is the total
-    profile.total_active_days = dates_query.count()
+    # calculate Total Active Days
+    profile.total_active_days = dates_query.count() # count = number of days user submitted.
 
+    # to check if streak is active
     today = now().date()
     yesterday = today - timedelta(days=1)
     
     # --- Calculate Current Streak ---
     current = 0
-    # Streak is active if user submitted today OR yesterday
+    # Streak is active if user submitted today or yesterday
     if dates[0] == today or dates[0] == yesterday:
         expected_date = dates[0]
         for d in dates:

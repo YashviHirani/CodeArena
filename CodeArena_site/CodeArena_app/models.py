@@ -71,9 +71,7 @@ class UserProfile(models.Model):
             models.Index(fields=["points"]),
         ]
 
-
 # --- Learning Content Models ---
-
 class Language(models.Model):
     LANGUAGE_CHOICES = [
         ('PY', 'Python'),
@@ -175,12 +173,7 @@ class UserMCQAttempt(models.Model):
     class Meta:
         unique_together = ('user', 'quiz')
 
-
-
-
-
 # --- Coding Problems Models ---
-
 class Topic(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
@@ -199,7 +192,7 @@ class Problem(models.Model):
     description = models.TextField()
     topic = models.ForeignKey(
         Topic, 
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE, # cascade means --> if a topic is deleted, all related Problems are also deleted
         related_name='problems'
     )
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES)
@@ -214,18 +207,16 @@ class Problem(models.Model):
     starter_code_java = models.TextField(blank=True)
     starter_code_python = models.TextField(blank=True)
 
-
     def __str__(self):
         return self.title
     
 class DailySubmission(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date = models.DateField()
-    count = models.PositiveIntegerField(default=0)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) # each DailySubmission belongs to one user --> 1 user - many daily submissions
+    date = models.DateField() # stores date
+    count = models.PositiveIntegerField(default=0) # stores number of correct submissions that day.
 
     class Meta:
-        unique_together = ("user", "date")
-
+        unique_together = ("user", "date") # user can only have one entry per date.
 
 class ExampleTestCase(models.Model):
     problem = models.OneToOneField(
@@ -253,11 +244,11 @@ class TestCase(models.Model):
     def __str__(self):
         return f"Testcase for {self.problem.title}"
     
+# stores which user submitted which problem, in which language, whether it was correct, and when.
 class ProblemSubmission(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     problem = models.ForeignKey(Problem, on_delete=models.CASCADE)
     is_correct = models.BooleanField(default=False)
-    # --- to know in which language user solved question ---
     language_used = models.CharField(max_length=10, blank=True, null=True)
     solved_at = models.DateTimeField(auto_now_add=True)
 

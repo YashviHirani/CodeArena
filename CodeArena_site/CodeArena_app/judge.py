@@ -6,13 +6,11 @@ import time
 import resource
 
 # ======================
-# UTIL: MEMORY TRACKING
+# MEMORY TRACKING
 # ======================
 
 def get_memory_mb():
-    """
-    Approximate memory usage of current process (MB)
-    """
+    # Approximate memory usage of current process (MB)
     return round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 2)
 
 
@@ -30,13 +28,13 @@ def judge_code(language, code, testcases):
             "verdict": "Unsupported Language"
         }
 
-
 # ======================
 # PYTHON JUDGE
 # ======================
 
 def judge_python(code, testcases):
 
+    # creates temporary file and then writes code of user in it because code must be saved somewhere to execute
     with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
         f.write(code)
         file_path = f.name
@@ -45,6 +43,10 @@ def judge_python(code, testcases):
         start_time = time.perf_counter()
 
         for idx, tc in enumerate(testcases, start=1):
+            # for try-except :-
+            # Runs python file --> Sends input --> Waits max 2 seconds --> Captures output
+            # If code runs more than 2 seconds --> TLE
+        
             try:
                 result = subprocess.run(
                     ["python3", file_path],
@@ -58,7 +60,7 @@ def judge_python(code, testcases):
                     "verdict": "Time Limit Exceeded",
                     "failed_testcase": idx
                 }
-
+            # for runtime error
             if result.returncode != 0:
                 return {
                     "verdict": "Runtime Error",
@@ -69,6 +71,7 @@ def judge_python(code, testcases):
             output = result.stdout.strip()
             expected = tc.expected_output.strip()
 
+            # for wrong ans and returns the failed testcase
             if output != expected:
                 return {
                     "verdict": "Wrong Answer",
@@ -94,6 +97,7 @@ def judge_python(code, testcases):
 
 def judge_java(code, testcases):
 
+    # coz java need class name same for checking and it needs compilation
     if "class Main" not in code:
         return {
             "verdict": "Invalid Format: class Main required"
@@ -102,6 +106,7 @@ def judge_java(code, testcases):
     temp_dir = tempfile.mkdtemp()
     java_file = os.path.join(temp_dir, "Main.java")
 
+    # open temp java file and then write user code in it 
     with open(java_file, "w") as f:
         f.write(code)
 
@@ -134,7 +139,7 @@ def judge_java(code, testcases):
         for idx, tc in enumerate(testcases, start=1):
             try:
                 run_res = subprocess.run(
-                    ["java", "-cp", temp_dir, "Main"],
+                    ["java", "-cp", temp_dir, "Main"], # Runs compiled class
                     input=tc.input_data.strip() + "\n",
                     capture_output=True,
                     text=True,
@@ -162,7 +167,7 @@ def judge_java(code, testcases):
         run_end = time.perf_counter()
 
     finally:
-        shutil.rmtree(temp_dir)
+        shutil.rmtree(temp_dir) # deletes temp folder
 
     return {
         "verdict": "Accepted",
