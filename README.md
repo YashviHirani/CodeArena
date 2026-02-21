@@ -52,28 +52,23 @@ Hackathon Team Finder
 - View matching users with skill overlap and contact email
 - Save favorites for team formation (future: in-app invites)
 
-Tech Stack (your stack)
+Tech Stack
 -----------------------
-- Frontend: plain HTML, CSS, Bootstrap, JavaScript (Vanilla JS)
-  - Pages served as Django templates or static HTML depending on structure
+- Frontend: plain HTML, CSS, Bootstrap, JavaScript 
+  - Pages served as Django templates 
   - Bootstrap for responsive UI and components
-  - Optional: integrate a richer editor (CodeMirror / Monaco) if desired
 - Backend: Django (Python)
   - REST endpoints (Django REST Framework optional) to serve problems, quizzes, users
   - Django templates for server-rendered pages if preferred
-- Database: PostgreSQL (recommended) or SQLite for quick dev
-- Runner: Secure, isolated code execution service (Dockerized worker recommended)
-- Optional: Redis for caching/queues, Celery for background tasks (grading, queueing jobs)
+- Database: SQLite
+- Runner: Secure, isolated code execution service
 
 Getting Started — Local Development (Django + static frontend)
 -------------------------------------------------------------
-This section is tailored to your stack: HTML/CSS/Bootstrap/JS frontend and Django backend.
 
 Prerequisites
 - Python 3.8+ and pip
-- Node.js + npm (only if you build frontend assets or use tooling)
-- PostgreSQL (or use SQLite for development)
-- Docker (optional but recommended for a secure code runner)
+- SQLite 
 - virtualenv or venv
 
 Quick local setup (example)
@@ -123,10 +118,8 @@ Frontend notes (HTML/CSS/Bootstrap/JS)
 - Load Bootstrap via CDN or local vendor files.
 - Implement code editor UI with a <textarea> or integrate CodeMirror/Monaco for better UX. The editor should POST code to a secure API endpoint for execution.
 
-Runner (Code Execution) — safety first
-- Never execute arbitrary user code on the main host. Use an isolated service (Docker container per job or sandboxing tool).
+
 - Runner receives code + language + stdin + tests, executes with time & memory limits, and returns results.
-- Queue runner jobs (Celery) and persist results to avoid blocking web requests.
 
 Testing
 - Place tests under server/tests/
@@ -158,17 +151,14 @@ Roadmap
 - Leaderboards, badges, streaks
 - More language support and runner improvements
 
-License & Contact
------------------
-Add a LICENSE file (MIT recommended).
 
-- Repo: https://github.com/Nivapatel10/Code_Arena
+- Repo: https://github.com/YashviHirani/CodeArena
 - Owner: Nivapatel10
 
 Made with ❤️ & ⚔️ — sharpen your skills and build great teams.
 
-Crossed Swords ASCII mini-logo (updated)
+Crossed Swords ASCII mini-logo 
 
      />===================================>\
-    (   C O D E   A R E N A   —  F I G H T  )
+    (   C O D E A R E N A   —  F I G H T  )
      \>===================================>/
