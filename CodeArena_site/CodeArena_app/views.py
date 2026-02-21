@@ -529,18 +529,6 @@ def save_mcq_answer(request):
         "quiz_type": quiz.quiz_type,
     })
 
-def get_quiz_questions(user, language, limit=10):
-    attempted_wrong = UserMCQAttempt.objects.filter(
-        user=user,
-        is_correct=False
-    ).values_list('quiz_id', flat=True)
-
-    quizzes = Quiz.objects.filter(
-        Q(id__in=attempted_wrong) |
-        Q(language=language)
-    ).distinct().order_by('?')[:limit]
-
-    return quizzes
 
 def quiz(request):
     return render(request, "quiz.html")
@@ -794,34 +782,6 @@ def quiz_summary(request):
         "summary": summary
     })
 
-def get_quizzes(user, language, quiz_type, limit=10):
-    solved_correct = UserMCQAttempt.objects.filter(
-        user=user,
-        is_correct=True
-    ).values_list("quiz_id", flat=True)
-
-    solved_wrong = UserMCQAttempt.objects.filter(
-        user=user,
-        is_correct=False
-    ).values_list("quiz_id", flat=True)
-
-    wrong = Quiz.objects.filter(
-        id__in=solved_wrong,
-        quiz_type=quiz_type,
-        language=language
-    )
-
-    new = Quiz.objects.filter(
-        quiz_type=quiz_type,
-        language=language
-    ).exclude(
-        id__in=solved_correct
-    ).exclude(
-        id__in=solved_wrong
-    )
-
-    quizzes = list(wrong) + list(new)
-    return quizzes[:limit]
 
 @login_required
 def problem_detail(request, problem_id):
