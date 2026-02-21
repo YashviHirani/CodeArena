@@ -60,7 +60,7 @@ def judge_python(code, testcases):
                     "verdict": "Time Limit Exceeded",
                     "failed_testcase": idx
                 }
-            # for runtime error
+            # for runtime error (if success code != 0 then runtime error)
             if result.returncode != 0:
                 return {
                     "verdict": "Runtime Error",

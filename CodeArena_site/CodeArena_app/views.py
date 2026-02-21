@@ -242,7 +242,7 @@ def dashboard_view(request):
 @login_required
 def profile_view(request):
     user = request.user # gets the currently logged-in user
-    # 🔥 Ensure streaks are updated (e.g., if a streak broke yesterday)
+    # ensure streaks are updated (e.g., if a streak broke yesterday)
     update_user_streaks(user)
     profile = user.profile # made obj of UserProfile of particular user so now we have access to all fields of that model
     
@@ -268,7 +268,7 @@ def profile_view(request):
     java_percent = int((solved_java / total_java) * 100) if total_java > 0 else 0
     python_percent = int((solved_python / total_python) * 100) if total_python > 0 else 0
 
-    # --- 1. ACCURATE TOTAL SOLVED (Same logic as dashboard) ---
+    # --- ACCURATE TOTAL SOLVED (Same logic as dashboard) ---
     # counts unique problems solved correctly
     total_solved = ProblemSubmission.objects.filter(
         user=user,
@@ -357,6 +357,7 @@ def recalculate_ranks():
 
     with transaction.atomic():
 
+        # make user's list by sorting on basis of points in descending order
         profiles = (
             UserProfile.objects
             .filter(points__gt=0)
@@ -367,17 +368,18 @@ def recalculate_ranks():
         current_rank = 0
 
         for index, profile in enumerate(profiles, start=1):
+            # compare current user rank with previous user rank
             if profile.points != last_points:
                 current_rank = index
                 last_points = profile.points
 
+            # if current user rank != rank in database then update rank in db
             if profile.rank != current_rank:
                 profile.rank = current_rank
                 profile.save(update_fields=["rank"])
 
 
 # ---------------- EDIT PROFILE ----------------
-
 @login_required
 def edit_profile_view(request):
     user = request.user
@@ -520,7 +522,6 @@ def save_mcq_answer(request):
 
     attempt.save()
 
-
     return JsonResponse({
         "correct": is_correct,
         "attempts": attempt.attempts,
@@ -608,18 +609,19 @@ def inside_quiz(request):
 
     language = get_object_or_404(Language, id=language_id)
 
-    # authenticated user only
+    # list of quiz IDs user solved correctly.
     solved_correct = UserMCQAttempt.objects.filter(
         user=request.user,
         is_correct=True
     ).values_list("quiz_id", flat=True)
 
+    # quiz IDs answered incorrectly.
     solved_wrong = UserMCQAttempt.objects.filter(
         user=request.user,
         is_correct=False
     ).values_list("quiz_id", flat=True)
 
-    # Previously wrong quizzes (revision first)
+    # Previously wrong quizzes (revision questions)
     wrong_quizzes = Quiz.objects.filter(
         id__in=solved_wrong,
         language=language,
